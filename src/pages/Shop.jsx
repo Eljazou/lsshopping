@@ -3,17 +3,27 @@ import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getProducts } from '../services/dataService'
 import { CATEGORY_KEYS } from '../data/categories'
-import { useLanguage } from '../context/LanguageContext'
-import { localized } from '../utils/format'
 import ProductGrid from '../components/product/ProductGrid'
 import Spinner from '../components/ui/Spinner'
-import { SearchIcon, CloseIcon } from '../components/ui/icons'
+import {
+  SearchIcon,
+  CloseIcon,
+  TruckIcon,
+  ShieldIcon,
+  HeartIcon,
+} from '../components/ui/icons'
 
-const SORTS = ['newest', 'priceLow', 'priceHigh']
+const CATEGORY_EMOJI = {
+  skincare: '🧴',
+  makeup: '💄',
+  haircare: '💇‍♀️',
+  fragrance: '🌸',
+  bodycare: '🧖‍♀️',
+  tools: '🖌️',
+}
 
 export default function Shop() {
   const { t } = useTranslation()
-  const { language } = useLanguage()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const [products, setProducts] = useState([])
@@ -86,104 +96,138 @@ export default function Shop() {
 
   const hasFilters = category !== 'all' || sort !== 'newest' || query
 
+  const promises = [
+    { icon: TruckIcon, title: 'promise2Title', text: 'promise2Text' },
+    { icon: HeartIcon, title: 'promise1Title', text: 'promise1Text' },
+    { icon: ShieldIcon, title: 'promise3Title', text: 'promise3Text' },
+  ]
+
   return (
-    <div className="container-x py-10 lg:py-14">
-      {/* header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-semibold sm:text-4xl">{t('shop.title')}</h1>
-        <span className="gold-divider mx-auto my-4" />
-        <p className="text-sm text-ink/60">
-          {t('shop.resultsCount', { count: filtered.length })}
-        </p>
-      </div>
+    <>
+      {/* ───────────── decorative header banner ───────────── */}
+      <section className="relative -mt-[68px] overflow-hidden bg-hero-gradient sm:-mt-20">
+        <div className="pointer-events-none absolute -end-20 top-24 h-72 w-72 rounded-full bg-plum-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-16 -start-16 h-72 w-72 rounded-full bg-blush-200/40 blur-3xl" />
 
-      {/* search bar (mobile-visible) */}
-      <form onSubmit={submitSearch} className="mx-auto mb-6 max-w-xl">
-        <div className="flex items-center rounded-full border border-plum-100 bg-white px-4 focus-within:border-plum-300">
-          <SearchIcon className="h-5 w-5 text-plum-400" />
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder={t('nav.search')}
-            className="w-full bg-transparent px-3 py-3 text-sm outline-none placeholder:text-plum-300"
-          />
-          {searchInput && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchInput('')
-                updateParam('q', '')
-              }}
-              className="text-plum-300 hover:text-blush-600"
-              aria-label={t('common.close')}
-            >
-              <CloseIcon className="h-4 w-4" />
-            </button>
-          )}
+        <div className="container-x relative pb-10 pt-28 text-center lg:pt-32">
+          <span className="mb-4 inline-block rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-plum-600 shadow-sm animate-fade-in">
+            {t('brand.tagline')}
+          </span>
+          <h1 className="animate-fade-in-up text-4xl font-semibold sm:text-5xl">
+            {t('shop.title')}
+          </h1>
+          <span className="gold-divider mx-auto my-4" />
+          <p className="text-sm text-ink/60">
+            {t('shop.resultsCount', { count: filtered.length })}
+          </p>
         </div>
-      </form>
+      </section>
 
-      {/* controls */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* category chips */}
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => updateParam('category', 'all')}
-            className={`badge border px-4 py-2 transition ${
-              category === 'all'
-                ? 'border-plum-400 bg-plum-500 text-white'
-                : 'border-plum-100 bg-white text-ink hover:border-plum-300'
-            }`}
-          >
-            {t('shop.allCategories')}
-          </button>
-          {CATEGORY_KEYS.map((key) => (
+      <div className="container-x py-10 lg:py-14">
+        {/* search bar */}
+        <form onSubmit={submitSearch} className="mx-auto mb-6 max-w-xl">
+          <div className="flex items-center rounded-full border border-plum-100 bg-white px-4 shadow-card focus-within:border-plum-300">
+            <SearchIcon className="h-5 w-5 text-plum-400" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t('nav.search')}
+              className="w-full bg-transparent px-3 py-3 text-sm outline-none placeholder:text-plum-300"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput('')
+                  updateParam('q', '')
+                }}
+                className="text-plum-300 hover:text-blush-600"
+                aria-label={t('common.close')}
+              >
+                <CloseIcon className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </form>
+
+        {/* controls card */}
+        <div className="card mb-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          {/* category chips */}
+          <div className="flex flex-wrap gap-2">
             <button
-              key={key}
-              onClick={() => updateParam('category', key)}
+              onClick={() => updateParam('category', 'all')}
               className={`badge border px-4 py-2 transition ${
-                category === key
-                  ? 'border-plum-400 bg-plum-500 text-white'
+                category === 'all'
+                  ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
                   : 'border-plum-100 bg-white text-ink hover:border-plum-300'
               }`}
             >
-              {t(`categories.${key}`)}
+              ✨ {t('shop.allCategories')}
             </button>
+            {CATEGORY_KEYS.map((key) => (
+              <button
+                key={key}
+                onClick={() => updateParam('category', key)}
+                className={`badge border px-4 py-2 transition ${
+                  category === key
+                    ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
+                    : 'border-plum-100 bg-white text-ink hover:border-plum-300'
+                }`}
+              >
+                <span className="me-1">{CATEGORY_EMOJI[key]}</span>
+                {t(`categories.${key}`)}
+              </button>
+            ))}
+          </div>
+
+          {/* sort */}
+          <div className="flex shrink-0 items-center gap-3">
+            <label className="text-sm text-ink/60">{t('shop.sort')}</label>
+            <select
+              value={sort}
+              onChange={(e) => updateParam('sort', e.target.value)}
+              className="input !w-auto !py-2 !px-3 cursor-pointer"
+            >
+              <option value="newest">{t('shop.sortNewest')}</option>
+              <option value="priceLow">{t('shop.sortPriceLow')}</option>
+              <option value="priceHigh">{t('shop.sortPriceHigh')}</option>
+            </select>
+          </div>
+        </div>
+
+        {/* results */}
+        {loading ? (
+          <div className="flex justify-center py-24">
+            <Spinner className="h-10 w-10" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center gap-4 py-24 text-center">
+            <p className="text-lg text-ink/60">{t('shop.noResults')}</p>
+            {hasFilters && (
+              <button onClick={clearAll} className="btn-outline">
+                {t('shop.clearFilters')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <ProductGrid products={filtered} />
+        )}
+
+        {/* trust strip — fills the page and reinforces the brand promise */}
+        <div className="mt-16 grid gap-6 rounded-3xl bg-blush-50/60 p-6 sm:grid-cols-3 sm:p-8">
+          {promises.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-plum-500 shadow-sm">
+                <Icon className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">{t(`home.${title}`)}</p>
+                <p className="text-xs text-ink/50">{t(`home.${text}`)}</p>
+              </div>
+            </div>
           ))}
         </div>
-
-        {/* sort */}
-        <div className="flex items-center gap-3">
-          <label className="text-sm text-ink/60">{t('shop.sort')}</label>
-          <select
-            value={sort}
-            onChange={(e) => updateParam('sort', e.target.value)}
-            className="input !w-auto !py-2 !px-3 cursor-pointer"
-          >
-            <option value="newest">{t('shop.sortNewest')}</option>
-            <option value="priceLow">{t('shop.sortPriceLow')}</option>
-            <option value="priceHigh">{t('shop.sortPriceHigh')}</option>
-          </select>
-        </div>
       </div>
-
-      {/* results */}
-      {loading ? (
-        <div className="flex justify-center py-24">
-          <Spinner className="h-10 w-10" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 py-24 text-center">
-          <p className="text-lg text-ink/60">{t('shop.noResults')}</p>
-          {hasFilters && (
-            <button onClick={clearAll} className="btn-outline">
-              {t('shop.clearFilters')}
-            </button>
-          )}
-        </div>
-      ) : (
-        <ProductGrid products={filtered} />
-      )}
-    </div>
+    </>
   )
 }

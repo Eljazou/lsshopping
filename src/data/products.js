@@ -11,13 +11,13 @@ const img = (id) => `https://images.unsplash.com/photo-${id}?w=700&q=80&auto=for
 const IMG = {
   serum: img('1620916566398-39f1143ab7be'),
   cream: img('1608248543803-ba4f8c70ae0b'),
-  foundation: img('1590156206657-aec9b0e4c1a6'),
+  foundation: img('1571781926291-c477ebfd024b'),
   lipstick: img('1631730359585-38a4935cbec4'),
   shampoo: img('1526947425960-945c6e72858f'),
   oil: img('1608571423902-eed4a5ad8108'),
   perfume: img('1592945403244-b3fbafd7f539'),
   perfume2: img('1541643600914-78b084683601'),
-  body: img('1570194065650-d99fb4bedf0a'),
+  body: img('1556228720-195a672e8a03'),
   brushes: img('1503236823255-94609f598e71'),
 }
 
