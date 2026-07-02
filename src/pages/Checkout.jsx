@@ -14,6 +14,28 @@ import { TruckIcon, ShieldIcon } from '../components/ui/icons'
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^[+]?[\d\s-]{8,}$/
 
+// Defined outside Checkout so its identity is stable across renders — an
+// inline component here would remount the <input> (and drop focus) on
+// every keystroke, since React treats each new function as a new type.
+function Field({ name, label, type = 'text', required, half, value, error, onChange, ...rest }) {
+  return (
+    <div className={half ? 'sm:col-span-1' : 'sm:col-span-2'}>
+      <label className="label" htmlFor={name}>
+        {label} {required && <span className="text-blush-500">*</span>}
+      </label>
+      <input
+        id={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={`input ${error ? '!border-blush-400 !ring-blush-100' : ''}`}
+        {...rest}
+      />
+      {error && <p className="mt-1 text-xs text-blush-600">{error}</p>}
+    </div>
+  )
+}
+
 export default function Checkout() {
   const { t } = useTranslation()
   const { language } = useLanguage()
@@ -86,25 +108,6 @@ export default function Checkout() {
     }
   }
 
-  const Field = ({ name, label, type = 'text', required, half, ...rest }) => (
-    <div className={half ? 'sm:col-span-1' : 'sm:col-span-2'}>
-      <label className="label" htmlFor={name}>
-        {label} {required && <span className="text-blush-500">*</span>}
-      </label>
-      <input
-        id={name}
-        type={type}
-        value={form[name]}
-        onChange={setField(name)}
-        className={`input ${errors[name] ? '!border-blush-400 !ring-blush-100' : ''}`}
-        {...rest}
-      />
-      {errors[name] && (
-        <p className="mt-1 text-xs text-blush-600">{errors[name]}</p>
-      )}
-    </div>
-  )
-
   return (
     <div className="container-x py-10 lg:py-14">
       <h1 className="mb-8 text-3xl font-semibold sm:text-4xl">{t('checkout.title')}</h1>
@@ -128,12 +131,64 @@ export default function Checkout() {
               {t('checkout.contactInfo')}
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field name="customerName" label={t('checkout.fullName')} required autoComplete="name" />
-              <Field name="email" label={t('checkout.email')} type="email" required autoComplete="email" />
-              <Field name="phone" label={t('checkout.phone')} type="tel" required autoComplete="tel" placeholder="+212 6 00 00 00 00" />
-              <Field name="city" label={t('checkout.city')} required half autoComplete="address-level2" />
-              <Field name="postalCode" label={t('checkout.postalCode')} half autoComplete="postal-code" />
-              <Field name="address" label={t('checkout.address')} required autoComplete="street-address" />
+              <Field
+                name="customerName"
+                label={t('checkout.fullName')}
+                required
+                autoComplete="name"
+                value={form.customerName}
+                error={errors.customerName}
+                onChange={setField('customerName')}
+              />
+              <Field
+                name="email"
+                label={t('checkout.email')}
+                type="email"
+                required
+                autoComplete="email"
+                value={form.email}
+                error={errors.email}
+                onChange={setField('email')}
+              />
+              <Field
+                name="phone"
+                label={t('checkout.phone')}
+                type="tel"
+                required
+                autoComplete="tel"
+                placeholder="+212 6 00 00 00 00"
+                value={form.phone}
+                error={errors.phone}
+                onChange={setField('phone')}
+              />
+              <Field
+                name="city"
+                label={t('checkout.city')}
+                required
+                half
+                autoComplete="address-level2"
+                value={form.city}
+                error={errors.city}
+                onChange={setField('city')}
+              />
+              <Field
+                name="postalCode"
+                label={t('checkout.postalCode')}
+                half
+                autoComplete="postal-code"
+                value={form.postalCode}
+                error={errors.postalCode}
+                onChange={setField('postalCode')}
+              />
+              <Field
+                name="address"
+                label={t('checkout.address')}
+                required
+                autoComplete="street-address"
+                value={form.address}
+                error={errors.address}
+                onChange={setField('address')}
+              />
 
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="notes">
