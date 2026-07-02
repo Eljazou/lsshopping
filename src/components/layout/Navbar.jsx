@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCart } from '../../context/CartContext'
 import LanguageSwitcher from './LanguageSwitcher'
@@ -11,10 +11,17 @@ export default function Navbar() {
   const { count } = useCart()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const [cartOpen, setCartOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [search, setSearch] = useState('')
+
+  // Keep the navbar search box in sync with the Shop page's own search box
+  // (e.g. if the user clears it from there, or lands on a shared /shop?q= link).
+  useEffect(() => {
+    setSearch(location.pathname === '/shop' ? searchParams.get('q') || '' : '')
+  }, [location.pathname, searchParams])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -26,10 +33,17 @@ export default function Navbar() {
   // Close the mobile menu on route change.
   useEffect(() => setMenuOpen(false), [location.pathname])
 
+  // Live search: filters the Shop page as soon as the user types, no submit
+  // needed. Uses `replace` once already on /shop so keystrokes don't spam
+  // browser history, but `push` the first time to actually navigate there.
+  const handleSearchChange = (value) => {
+    setSearch(value)
+    const qs = value.trim() ? `?q=${encodeURIComponent(value.trim())}` : ''
+    navigate(`/shop${qs}`, { replace: location.pathname === '/shop' })
+  }
+
   const submitSearch = (e) => {
     e.preventDefault()
-    navigate(`/shop?q=${encodeURIComponent(search.trim())}`)
-    setSearch('')
   }
 
   const navLinkClass = ({ isActive }) =>
@@ -88,7 +102,7 @@ export default function Navbar() {
                 <SearchIcon className="h-4 w-4 text-plum-400" />
                 <input
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder={t('nav.search')}
                   className="w-36 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-plum-300 lg:w-48"
                 />
@@ -147,7 +161,7 @@ export default function Navbar() {
               <SearchIcon className="h-4 w-4 text-plum-400" />
               <input
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder={t('nav.search')}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-plum-300"
               />

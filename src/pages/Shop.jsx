@@ -155,7 +155,10 @@ export default function Shop() {
             <SearchIcon className="h-5 w-5 text-plum-400" />
             <input
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e) => {
+                setSearchInput(e.target.value)
+                updateParam('q', e.target.value)
+              }}
               placeholder={t('nav.search')}
               className="w-full bg-transparent px-3 py-3 text-sm outline-none placeholder:text-plum-300"
             />
@@ -175,10 +178,9 @@ export default function Shop() {
           </div>
         </form>
 
-        {/* controls card */}
-        <div className="card mb-10 p-4 sm:p-5">
-          {/* category chips — single scrollable row, never wraps */}
-          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        {/* controls card — categories (scrollable) and sort share one row */}
+        <div className="card mb-10 flex items-center gap-3 p-3 sm:p-4">
+          <div className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
             <button
               onClick={() => updateParam('category', 'all')}
               className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
@@ -209,9 +211,10 @@ export default function Shop() {
             })}
           </div>
 
-          {/* sort — its own row, separated by a divider */}
-          <div className="mt-4 flex items-center justify-end gap-3 border-t border-blush-100 pt-4">
-            <label className="text-sm text-ink/60">{t('shop.sort')}</label>
+          <div className="hidden h-8 w-px shrink-0 bg-blush-100 sm:block" />
+
+          <div className="flex shrink-0 items-center gap-2">
+            <label className="hidden text-sm text-ink/60 sm:inline">{t('shop.sort')}</label>
             <select
               value={sort}
               onChange={(e) => updateParam('sort', e.target.value)}
