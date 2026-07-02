@@ -70,24 +70,36 @@ export default function Shop() {
       list = list.filter((p) => p.category === category)
     }
 
-    if (query.trim()) {
-      const q = query.trim().toLowerCase()
-      list = list.filter((p) => {
-        const names = Object.values(p.name || {}).join(' ').toLowerCase()
-        const descs = Object.values(p.description || {}).join(' ').toLowerCase()
-        return names.includes(q) || descs.includes(q)
-      })
+    // Relevance score for a search match: name hits rank above
+    // description-only hits, and an earlier match in the name ranks higher
+    // still (e.g. "Rose Élixir" should beat "...with a hint of rose" for "rose").
+    const relevance = (p, q) => {
+      const names = Object.values(p.name || {}).join(' ').toLowerCase()
+      const descs = Object.values(p.description || {}).join(' ').toLowerCase()
+      const nameIndex = names.indexOf(q)
+      if (nameIndex !== -1) return 1000 - nameIndex
+      if (descs.includes(q)) return 0
+      return -1
     }
 
-    switch (sort) {
-      case 'priceLow':
-        list.sort((a, b) => a.price - b.price)
-        break
-      case 'priceHigh':
-        list.sort((a, b) => b.price - a.price)
-        break
-      default: // newest
-        list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const q = query.trim().toLowerCase()
+    if (q) {
+      list = list
+        .map((p) => ({ p, score: relevance(p, q) }))
+        .filter((x) => x.score >= 0)
+        .sort((a, b) => b.score - a.score)
+        .map((x) => x.p)
+    } else {
+      switch (sort) {
+        case 'priceLow':
+          list.sort((a, b) => a.price - b.price)
+          break
+        case 'priceHigh':
+          list.sort((a, b) => b.price - a.price)
+          break
+        default: // newest
+          list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      }
     }
     return list
   }, [products, category, sort, query])
