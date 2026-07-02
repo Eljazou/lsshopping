@@ -119,6 +119,15 @@
     inset 0 -6px 16px -8px rgba(255, 255, 255, 0.34);
 }
 
+/* Hide scrollbar for horizontally-scrollable chip rows, wheel/touch still works */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Hide number input spinners */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {

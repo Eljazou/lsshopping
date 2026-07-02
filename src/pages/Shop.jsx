@@ -114,47 +114,10 @@ export default function Shop() {
     <>
       {/* ───────────── decorative header banner ───────────── */}
       <section className="relative -mt-[68px] overflow-hidden bg-hero-gradient sm:-mt-20">
-        {/* dot-grid texture for depth */}
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35]"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle, rgba(143,87,236,0.18) 1px, transparent 1px)',
-            backgroundSize: '22px 22px',
-          }}
-        />
-        <div className="pointer-events-none absolute -end-16 top-16 h-80 w-80 rounded-full bg-plum-300/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -start-20 h-80 w-80 rounded-full bg-blush-300/30 blur-3xl" />
-        <div className="pointer-events-none absolute end-1/3 -bottom-10 h-40 w-40 rounded-full bg-gold-light/40 blur-3xl" />
+        <div className="pointer-events-none absolute -end-16 top-16 h-80 w-80 rounded-full bg-plum-300/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -start-20 h-80 w-80 rounded-full bg-blush-300/25 blur-3xl" />
 
-        <div className="container-x relative pb-14 pt-28 text-center lg:pt-32">
-          {/* floating trust badges */}
-          <div className="pointer-events-none absolute inset-x-0 top-20 hidden justify-between px-6 lg:flex xl:px-16">
-            <div className="pointer-events-auto flex animate-fade-in-up items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-card backdrop-blur">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/15 text-gold">
-                <StarIcon className="h-4 w-4" />
-              </span>
-              <div className="text-start">
-                <p className="text-sm font-semibold leading-tight">4.9/5</p>
-                <p className="text-xs text-ink/50">avis clientes</p>
-              </div>
-            </div>
-            <div
-              className="pointer-events-auto flex animate-fade-in-up items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-card backdrop-blur"
-              style={{ animationDelay: '120ms' }}
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-plum-100 text-plum-600">
-                <TruckIcon className="h-4 w-4" />
-              </span>
-              <div className="text-start">
-                <p className="text-sm font-semibold leading-tight">
-                  {t('checkout.cod')}
-                </p>
-                <p className="text-xs text-ink/50">{t('home.promise2Title')}</p>
-              </div>
-            </div>
-          </div>
-
+        <div className="container-x relative pb-10 pt-28 text-center lg:pt-32">
           <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-plum-600 shadow-sm animate-fade-in">
             <SparkleIcon className="h-3.5 w-3.5" />
             {t('brand.tagline')}
@@ -163,9 +126,25 @@ export default function Shop() {
             {t('shop.title')}
           </h1>
           <span className="gold-divider mx-auto my-4" />
-          <p className="text-sm text-ink/60">
+          <p className="mb-6 text-sm text-ink/60">
             {t('shop.resultsCount', { count: filtered.length })}
           </p>
+
+          {/* trust pills — inline, no overlap with the navbar */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <StarIcon className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-xs font-medium text-ink/70">4.9/5 avis clientes</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-plum-100 text-plum-600">
+                <TruckIcon className="h-3.5 w-3.5" />
+              </span>
+              <span className="text-xs font-medium text-ink/70">{t('checkout.cod')}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -197,12 +176,12 @@ export default function Shop() {
         </form>
 
         {/* controls card */}
-        <div className="card mb-10 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          {/* category chips */}
-          <div className="flex flex-wrap gap-2">
+        <div className="card mb-10 p-4 sm:p-5">
+          {/* category chips — single scrollable row, never wraps */}
+          <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
             <button
               onClick={() => updateParam('category', 'all')}
-              className={`badge gap-1.5 border px-4 py-2 transition ${
+              className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
                 category === 'all'
                   ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
                   : 'border-plum-100 bg-white text-ink hover:border-plum-300'
@@ -217,7 +196,7 @@ export default function Shop() {
                 <button
                   key={key}
                   onClick={() => updateParam('category', key)}
-                  className={`badge gap-1.5 border px-4 py-2 transition ${
+                  className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
                     category === key
                       ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
                       : 'border-plum-100 bg-white text-ink hover:border-plum-300'
@@ -230,8 +209,8 @@ export default function Shop() {
             })}
           </div>
 
-          {/* sort */}
-          <div className="flex shrink-0 items-center gap-3">
+          {/* sort — its own row, separated by a divider */}
+          <div className="mt-4 flex items-center justify-end gap-3 border-t border-blush-100 pt-4">
             <label className="text-sm text-ink/60">{t('shop.sort')}</label>
             <select
               value={sort}
