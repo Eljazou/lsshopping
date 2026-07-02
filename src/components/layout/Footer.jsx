@@ -114,8 +114,8 @@ export default function Footer() {
           <ul className="space-y-2 text-sm text-white/60">
             <li>📍 Casablanca, Maroc</li>
             <li>
-              <a href="tel:+212600000000" className="transition hover:text-white">
-                📞 +212 6 00 00 00 00
+              <a href="tel:+212606064342" className="transition hover:text-white">
+                📞 +212 6 06 06 43 42
               </a>
             </li>
             <li>
