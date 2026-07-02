@@ -11,15 +11,23 @@ import {
   TruckIcon,
   ShieldIcon,
   HeartIcon,
+  StarIcon,
+  SparkleIcon,
+  DropletIcon,
+  LipstickIcon,
+  ScissorsIcon,
+  PerfumeIcon,
+  LeafIcon,
+  BrushIcon,
 } from '../components/ui/icons'
 
-const CATEGORY_EMOJI = {
-  skincare: '🧴',
-  makeup: '💄',
-  haircare: '💇‍♀️',
-  fragrance: '🌸',
-  bodycare: '🧖‍♀️',
-  tools: '🖌️',
+const CATEGORY_ICON = {
+  skincare: DropletIcon,
+  makeup: LipstickIcon,
+  haircare: ScissorsIcon,
+  fragrance: PerfumeIcon,
+  bodycare: LeafIcon,
+  tools: BrushIcon,
 }
 
 export default function Shop() {
@@ -106,11 +114,49 @@ export default function Shop() {
     <>
       {/* ───────────── decorative header banner ───────────── */}
       <section className="relative -mt-[68px] overflow-hidden bg-hero-gradient sm:-mt-20">
-        <div className="pointer-events-none absolute -end-20 top-24 h-72 w-72 rounded-full bg-plum-200/40 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -start-16 h-72 w-72 rounded-full bg-blush-200/40 blur-3xl" />
+        {/* dot-grid texture for depth */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(143,87,236,0.18) 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+          }}
+        />
+        <div className="pointer-events-none absolute -end-16 top-16 h-80 w-80 rounded-full bg-plum-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -start-20 h-80 w-80 rounded-full bg-blush-300/30 blur-3xl" />
+        <div className="pointer-events-none absolute end-1/3 -bottom-10 h-40 w-40 rounded-full bg-gold-light/40 blur-3xl" />
 
-        <div className="container-x relative pb-10 pt-28 text-center lg:pt-32">
-          <span className="mb-4 inline-block rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-plum-600 shadow-sm animate-fade-in">
+        <div className="container-x relative pb-14 pt-28 text-center lg:pt-32">
+          {/* floating trust badges */}
+          <div className="pointer-events-none absolute inset-x-0 top-20 hidden justify-between px-6 lg:flex xl:px-16">
+            <div className="pointer-events-auto flex animate-fade-in-up items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-card backdrop-blur">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gold/15 text-gold">
+                <StarIcon className="h-4 w-4" />
+              </span>
+              <div className="text-start">
+                <p className="text-sm font-semibold leading-tight">4.9/5</p>
+                <p className="text-xs text-ink/50">avis clientes</p>
+              </div>
+            </div>
+            <div
+              className="pointer-events-auto flex animate-fade-in-up items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-card backdrop-blur"
+              style={{ animationDelay: '120ms' }}
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-plum-100 text-plum-600">
+                <TruckIcon className="h-4 w-4" />
+              </span>
+              <div className="text-start">
+                <p className="text-sm font-semibold leading-tight">
+                  {t('checkout.cod')}
+                </p>
+                <p className="text-xs text-ink/50">{t('home.promise2Title')}</p>
+              </div>
+            </div>
+          </div>
+
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white/70 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.15em] text-plum-600 shadow-sm animate-fade-in">
+            <SparkleIcon className="h-3.5 w-3.5" />
             {t('brand.tagline')}
           </span>
           <h1 className="animate-fade-in-up text-4xl font-semibold sm:text-5xl">
@@ -156,28 +202,32 @@ export default function Shop() {
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => updateParam('category', 'all')}
-              className={`badge border px-4 py-2 transition ${
+              className={`badge gap-1.5 border px-4 py-2 transition ${
                 category === 'all'
                   ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
                   : 'border-plum-100 bg-white text-ink hover:border-plum-300'
               }`}
             >
-              ✨ {t('shop.allCategories')}
+              <SparkleIcon className="h-3.5 w-3.5" />
+              {t('shop.allCategories')}
             </button>
-            {CATEGORY_KEYS.map((key) => (
-              <button
-                key={key}
-                onClick={() => updateParam('category', key)}
-                className={`badge border px-4 py-2 transition ${
-                  category === key
-                    ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
-                    : 'border-plum-100 bg-white text-ink hover:border-plum-300'
-                }`}
-              >
-                <span className="me-1">{CATEGORY_EMOJI[key]}</span>
-                {t(`categories.${key}`)}
-              </button>
-            ))}
+            {CATEGORY_KEYS.map((key) => {
+              const Icon = CATEGORY_ICON[key]
+              return (
+                <button
+                  key={key}
+                  onClick={() => updateParam('category', key)}
+                  className={`badge gap-1.5 border px-4 py-2 transition ${
+                    category === key
+                      ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
+                      : 'border-plum-100 bg-white text-ink hover:border-plum-300'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {t(`categories.${key}`)}
+                </button>
+              )
+            })}
           </div>
 
           {/* sort */}
