@@ -192,35 +192,39 @@ export default function Shop() {
 
         {/* controls card — categories (scrollable) and sort share one row */}
         <div className="card mb-10 flex items-center gap-3 p-3 sm:p-4">
-          <div className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
-            <button
-              onClick={() => updateParam('category', 'all')}
-              className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
-                category === 'all'
-                  ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
-                  : 'border-plum-100 bg-white text-ink hover:border-plum-300'
-              }`}
-            >
-              <SparkleIcon className="h-3.5 w-3.5" />
-              {t('shop.allCategories')}
-            </button>
-            {CATEGORY_KEYS.map((key) => {
-              const Icon = CATEGORY_ICON[key]
-              return (
-                <button
-                  key={key}
-                  onClick={() => updateParam('category', key)}
-                  className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
-                    category === key
-                      ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
-                      : 'border-plum-100 bg-white text-ink hover:border-plum-300'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {t(`categories.${key}`)}
-                </button>
-              )
-            })}
+          <div className="relative min-w-0 flex-1">
+            <div className="no-scrollbar flex gap-2 overflow-x-auto pe-6">
+              <button
+                onClick={() => updateParam('category', 'all')}
+                className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
+                  category === 'all'
+                    ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
+                    : 'border-plum-100 bg-white text-ink hover:border-plum-300'
+                }`}
+              >
+                <SparkleIcon className="h-3.5 w-3.5" />
+                {t('shop.allCategories')}
+              </button>
+              {CATEGORY_KEYS.map((key) => {
+                const Icon = CATEGORY_ICON[key]
+                return (
+                  <button
+                    key={key}
+                    onClick={() => updateParam('category', key)}
+                    className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
+                      category === key
+                        ? 'border-plum-400 bg-gradient-to-r from-blush-500 to-plum-500 text-white shadow-sm'
+                        : 'border-plum-100 bg-white text-ink hover:border-plum-300'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {t(`categories.${key}`)}
+                  </button>
+                )
+              })}
+            </div>
+            {/* fade hint: signals there are more chips to scroll to */}
+            <div className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-white to-transparent rtl:bg-gradient-to-r" />
           </div>
 
           <div className="hidden h-8 w-px shrink-0 bg-blush-100 sm:block" />
