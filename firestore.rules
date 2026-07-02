@@ -4,8 +4,11 @@ rules_version = '2';
 //  L&S Shopping — Firestore security rules
 //
 //  Storefront model:
-//   • products  — publicly READABLE, writable only by an authenticated
-//                 (admin) user.
+//   • products  — publicly READABLE. Full writes (add/edit/delete) require
+//                 an authenticated admin. Additionally, ANY client may
+//                 *decrement* just the `stock` field — this is what lets
+//                 checkout reduce inventory without an admin session; see
+//                 isValidStockDecrement() below for the exact constraints.
 //   • orders    — publicly CREATE-only (customers place COD orders),
 //                 readable/updatable only by an authenticated admin user.
 //
@@ -33,9 +36,24 @@ service cloud.firestore {
         && o.status == 'pending';
     }
 
+    // Lets checkout (unauthenticated) reduce a product's stock without
+    // touching anything else: only the `stock` field may change, it must
+    // go down (never up), never below zero, and by a sane amount in one
+    // write (guards against a single request zeroing out inventory).
+    function isValidStockDecrement() {
+      let before = resource.data.stock;
+      let after = request.resource.data.stock;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock'])
+        && after is number
+        && after >= 0
+        && after < before
+        && before - after <= 50;
+    }
+
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || isValidStockDecrement();
     }
 
     match /orders/{orderId} {

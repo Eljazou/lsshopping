@@ -123,17 +123,39 @@ export async function createOrder(order) {
     await delay(500)
     const saved = { id: `o${Date.now()}`, ...payload }
     mockOrders = [saved, ...mockOrders]
+    // Decrement stock for each purchased product, same as the live path.
+    mockProducts = mockProducts.map((p) => {
+      const item = order.items.find((i) => i.productId === p.id)
+      if (!item) return p
+      return { ...p, stock: Math.max(0, (p.stock ?? 0) - item.quantity) }
+    })
     return saved
   }
 
-  const { collection, addDoc, serverTimestamp } = await import('firebase/firestore')
-  const ref = await addDoc(collection(await getDb(), 'orders'), {
+  // Create the order and decrement each purchased product's stock atomically
+  // — either both succeed or neither does. Uses increment() so concurrent
+  // checkouts don't clobber each other's stock counts.
+  const { collection, doc, writeBatch, serverTimestamp, increment } =
+    await import('firebase/firestore')
+  const db = await getDb()
+  const batch = writeBatch(db)
+
+  const orderDocRef = doc(collection(db, 'orders'))
+  batch.set(orderDocRef, {
     ...order,
     status: 'pending',
     orderRef,
     createdAt: serverTimestamp(),
   })
-  return { id: ref.id, ...payload }
+
+  for (const item of order.items) {
+    batch.update(doc(db, 'products', item.productId), {
+      stock: increment(-item.quantity),
+    })
+  }
+
+  await batch.commit()
+  return { id: orderDocRef.id, ...payload }
 }
 
 export async function getOrders() {
