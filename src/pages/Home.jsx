@@ -65,7 +65,7 @@ export default function Home() {
           </div>
 
           <div className="relative animate-fade-in">
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2.5rem] shadow-soft">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2.5rem] shadow-soft">
               <img
                 src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=900&q=80"
                 alt=""
