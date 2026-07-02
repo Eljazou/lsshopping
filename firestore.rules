@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// ─────────────────────────────────────────────────────────────
+//  L&S Shopping — Firestore security rules
+//
+//  Storefront model:
+//   • products  — publicly READABLE, writable only by an authenticated
+//                 (admin) user.
+//   • orders    — publicly CREATE-only (customers place COD orders),
+//                 readable/updatable only by an authenticated admin user.
+//
+//  Admin accounts are created manually in the Firebase console
+//  (Authentication > Users > Add user) — there is no public sign-up. Because
+//  of that, ANY authenticated user is trusted as an admin here. Only give
+//  the admin login (email/password) to people you trust.
+// ─────────────────────────────────────────────────────────────
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // Basic shape validation for an incoming order.
+    function isValidOrder(o) {
+      return o.keys().hasAll(['customerName', 'phone', 'address', 'city', 'items', 'total', 'status'])
+        && o.customerName is string && o.customerName.size() > 0
+        && o.phone is string && o.phone.size() >= 6
+        && o.address is string && o.address.size() > 0
+        && o.city is string && o.city.size() > 0
+        && o.items is list && o.items.size() > 0
+        && o.total is number && o.total >= 0
+        && o.status == 'pending';
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if isValidOrder(request.resource.data);
+      allow read, update: if isAdmin();
+      allow delete: if false; // orders are never deleted, only status-updated
+    }
+  }
+}

@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    /* Soft blush canvas (matches the hero gradient's top colour) so the
+       floating navbar reads as detached instead of sitting on a white band. */
+    @apply bg-blush-50 text-ink font-body antialiased;
+  }
+
+  /* Arabic / RTL typography */
+  html[dir='rtl'] body {
+    @apply font-arabic;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-ink;
+  }
+
+  html[dir='rtl'] h1,
+  html[dir='rtl'] h2,
+  html[dir='rtl'] h3,
+  html[dir='rtl'] h4 {
+    @apply font-arabic;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3
+           text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed
+           disabled:opacity-50 focus:outline-none focus-visible:ring-2
+           focus-visible:ring-plum-400 focus-visible:ring-offset-2;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-blush-500 to-plum-500 text-white
+           shadow-soft hover:from-blush-600 hover:to-plum-600 hover:shadow-lg
+           active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply btn border border-plum-200 bg-white text-plum-700
+           hover:border-plum-400 hover:bg-plum-50;
+  }
+
+  .btn-gold {
+    @apply btn bg-gold text-white shadow-sm hover:bg-gold-dark active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply btn text-ink hover:bg-blush-50;
+  }
+
+  .card {
+    @apply rounded-3xl bg-white shadow-card ring-1 ring-black/5;
+  }
+
+  .input {
+    @apply w-full rounded-2xl border border-plum-100 bg-white px-4 py-3 text-sm
+           text-ink placeholder:text-plum-300 transition
+           focus:border-plum-400 focus:outline-none focus:ring-2 focus:ring-plum-100;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink/80;
+  }
+
+  .gold-divider {
+    @apply h-px w-24 bg-gold-line;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+  }
+}
+
+/* ── Liquid Glass (frosted, refractive navbar) ──
+   Layered translucent backgrounds + heavy blur/saturate let the pink behind
+   glow through, while a top sheen and inset highlights fake the glass rim. */
+.liquid-glass {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.18));
+  backdrop-filter: blur(16px) saturate(185%);
+  -webkit-backdrop-filter: blur(16px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 8px 30px -6px rgba(31, 22, 38, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -6px 16px -8px rgba(255, 255, 255, 0.28);
+}
+
+.liquid-glass--scrolled {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.06) 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.3));
+  backdrop-filter: blur(22px) saturate(190%);
+  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  box-shadow:
+    0 14px 40px -8px rgba(31, 22, 38, 0.24),
+    inset 0 1px 1px rgba(255, 255, 255, 1),
+    inset 0 -6px 16px -8px rgba(255, 255, 255, 0.34);
+}
+
+/* Hide number input spinners */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2d3ff;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbb0ff;
+}
