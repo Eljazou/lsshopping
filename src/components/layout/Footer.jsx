@@ -2,9 +2,11 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { CATEGORIES } from '../../data/categories'
 
-const Social = ({ label, d }) => (
+const Social = ({ label, d, href }) => (
   <a
-    href="#"
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
     aria-label={label}
     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-gold"
   >
@@ -13,6 +15,14 @@ const Social = ({ label, d }) => (
     </svg>
   </a>
 )
+
+// Store's social / messaging links — update here if they ever change.
+const WHATSAPP_NUMBER = '212606064342' // 06 06 06 43 42, in international format
+const SOCIAL_LINKS = {
+  instagram: 'https://www.instagram.com/ls_shopping_lilystore?igsh=eGx4MTNjYnU1NnJ2',
+  tiktok: 'https://www.tiktok.com/@ls_shopping?_r=1&_t=ZS-97hMrJoq8ts',
+  whatsapp: `https://wa.me/${WHATSAPP_NUMBER}`,
+}
 
 export default function Footer() {
   const { t } = useTranslation()
@@ -45,14 +55,17 @@ export default function Footer() {
           <div className="mt-5 flex gap-3">
             <Social
               label="Instagram"
+              href={SOCIAL_LINKS.instagram}
               d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.1.4.3 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.1-1 .3-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.1-.4-.3-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.1 1-.3 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.1 0-3.5 0-4.7.1-1.1.1-1.7.2-2.1.4-.5.2-.9.4-1.3.8-.4.4-.6.8-.8 1.3-.2.4-.3 1-.4 2.1C2.6 9.9 2.6 10.3 2.6 12s0 2.1.1 3.3c.1 1.1.2 1.7.4 2.1.2.5.4.9.8 1.3.4.4.8.6 1.3.8.4.2 1 .3 2.1.4 1.2.1 1.6.1 4.7.1s3.5 0 4.7-.1c1.1-.1 1.7-.2 2.1-.4.5-.2.9-.4 1.3-.8.4-.4.6-.8.8-1.3.2-.4.3-1 .4-2.1.1-1.2.1-1.6.1-3.3s0-2.1-.1-3.3c-.1-1.1-.2-1.7-.4-2.1-.2-.5-.4-.9-.8-1.3-.4-.4-.8-.6-1.3-.8-.4-.2-1-.3-2.1-.4-1.2-.1-1.6-.1-4.7-.1zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8zm0 8.1a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zm6.3-8.3a1.15 1.15 0 1 1-2.3 0 1.15 1.15 0 0 1 2.3 0z"
             />
             <Social
-              label="Facebook"
-              d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.1H7.3V13h2.8v8h3.4z"
+              label="WhatsApp"
+              href={SOCIAL_LINKS.whatsapp}
+              d="M12.04 2c-5.5 0-10 4.5-10 10 0 1.8.5 3.5 1.3 5L2 22l5.2-1.4c1.4.8 3.1 1.2 4.8 1.2 5.5 0 10-4.5 10-10s-4.5-10-9.96-10zm0 18.3c-1.5 0-3-.4-4.3-1.2l-.3-.2-3.1.8.8-3-.2-.3c-.9-1.4-1.3-2.9-1.3-4.5 0-4.6 3.7-8.3 8.3-8.3 4.6 0 8.3 3.7 8.3 8.3.1 4.6-3.6 8.4-8.2 8.4zm4.5-6.2c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.7.8-.8.9-.1.2-.3.2-.5.1-.2-.1-1-.4-2-1.2-.7-.6-1.2-1.4-1.4-1.6-.1-.2 0-.4.1-.5.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5C10.2 9.5 9.7 8.3 9.5 7.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-.9.9-.9 2.2s1 2.5 1.1 2.7c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.5-.6 1.8-1.2.2-.6.2-1.1.2-1.2-.1-.2-.3-.2-.5-.3z"
             />
             <Social
               label="TikTok"
+              href={SOCIAL_LINKS.tiktok}
               d="M16.5 3c.3 1.8 1.4 3.3 3 3.9V10c-1.2 0-2.3-.4-3.3-1v5.4a5.4 5.4 0 1 1-5.4-5.4c.3 0 .6 0 .9.1v3a2.4 2.4 0 1 0 1.7 2.3V3h3.1z"
             />
           </div>
