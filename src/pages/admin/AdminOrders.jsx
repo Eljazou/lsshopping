@@ -6,7 +6,7 @@ import { useToast } from '../../context/ToastContext'
 import { formatPrice, formatDate } from '../../utils/format'
 import { PageLoader } from '../../components/ui/Spinner'
 import { SearchIcon } from '../../components/ui/icons'
-import StatusBadge from './StatusBadge'
+import StatusBadge, { STATUS_SELECT_STYLES } from './StatusBadge'
 
 function StatCard({ label, value, accent }) {
   return (
@@ -165,7 +165,7 @@ export default function AdminOrders() {
                         <select
                           value={o.status}
                           onChange={(e) => changeStatus(o, e.target.value)}
-                          className="input !w-auto !py-1.5 !px-3 cursor-pointer text-xs"
+                          className={`input !w-auto !py-1.5 !px-3 cursor-pointer text-xs font-medium ${STATUS_SELECT_STYLES[o.status] || ''}`}
                         >
                           {ORDER_STATUSES.map((s) => (
                             <option key={s} value={s}>
@@ -251,7 +251,7 @@ export default function AdminOrders() {
                   <select
                     value={o.status}
                     onChange={(e) => changeStatus(o, e.target.value)}
-                    className="input !w-auto !py-1.5 !px-3 text-xs"
+                    className={`input !w-auto !py-1.5 !px-3 text-xs font-medium ${STATUS_SELECT_STYLES[o.status] || ''}`}
                   >
                     {ORDER_STATUSES.map((s) => (
                       <option key={s} value={s}>
