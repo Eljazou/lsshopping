@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getProducts } from '../services/dataService'
@@ -19,6 +19,7 @@ import {
   PerfumeIcon,
   LeafIcon,
   BrushIcon,
+  ArrowRight,
 } from '../components/ui/icons'
 
 const CATEGORY_ICON = {
@@ -41,6 +42,59 @@ export default function Shop() {
   const sort = searchParams.get('sort') || 'newest'
   const query = searchParams.get('q') || ''
   const [searchInput, setSearchInput] = useState(query)
+
+  // Category chip row: click-and-drag to scroll (desktop) + arrow buttons
+  // that appear when there's more to see, on top of native touch scroll.
+  const chipsRef = useRef(null)
+  const [canScrollStart, setCanScrollStart] = useState(false)
+  const [canScrollEnd, setCanScrollEnd] = useState(false)
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false })
+
+  const updateScrollState = () => {
+    const el = chipsRef.current
+    if (!el) return
+    const max = el.scrollWidth - el.clientWidth
+    setCanScrollStart(el.scrollLeft > 4)
+    setCanScrollEnd(el.scrollLeft < max - 4)
+  }
+
+  useEffect(() => {
+    updateScrollState()
+    window.addEventListener('resize', updateScrollState)
+    return () => window.removeEventListener('resize', updateScrollState)
+  }, [products])
+
+  const scrollChipsBy = (amount) => {
+    chipsRef.current?.scrollBy({ left: amount, behavior: 'smooth' })
+  }
+
+  const onChipsPointerDown = (e) => {
+    // Touch already scrolls natively via overflow-x-auto — only hijack mouse
+    // (and pen) input, so we don't fight the browser's touch momentum scroll.
+    if (e.pointerType === 'touch') return
+    const el = chipsRef.current
+    if (!el) return
+    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false }
+    el.setPointerCapture(e.pointerId)
+  }
+  const onChipsPointerMove = (e) => {
+    if (!drag.current.active) return
+    const el = chipsRef.current
+    if (!el) return
+    const delta = e.clientX - drag.current.startX
+    if (Math.abs(delta) > 3) drag.current.moved = true
+    el.scrollLeft = drag.current.startScroll - delta
+  }
+  const endChipsDrag = () => {
+    drag.current.active = false
+  }
+  // Suppress the click that would otherwise fire on a chip right after a drag.
+  const onChipsClickCapture = (e) => {
+    if (drag.current.moved) {
+      e.stopPropagation()
+      drag.current.moved = false
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -192,8 +246,17 @@ export default function Shop() {
 
         {/* controls card — categories (scrollable) and sort share one row */}
         <div className="card mb-10 flex items-center gap-3 p-3 sm:p-4">
-          <div className="relative min-w-0 flex-1">
-            <div className="no-scrollbar flex gap-2 overflow-x-auto pe-6">
+          <div className="group relative min-w-0 flex-1">
+            <div
+              ref={chipsRef}
+              onScroll={updateScrollState}
+              onPointerDown={onChipsPointerDown}
+              onPointerMove={onChipsPointerMove}
+              onPointerUp={endChipsDrag}
+              onPointerLeave={endChipsDrag}
+              onClickCapture={onChipsClickCapture}
+              className="no-scrollbar flex cursor-grab gap-2 overflow-x-auto pe-6 active:cursor-grabbing"
+            >
               <button
                 onClick={() => updateParam('category', 'all')}
                 className={`badge shrink-0 gap-1.5 border px-4 py-2 transition ${
@@ -223,8 +286,36 @@ export default function Shop() {
                 )
               })}
             </div>
-            {/* fade hint: signals there are more chips to scroll to */}
-            <div className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-white to-transparent rtl:bg-gradient-to-r" />
+
+            {/* fade hints — signal there's more to scroll to on that side */}
+            {canScrollStart && (
+              <div className="pointer-events-none absolute inset-y-0 start-0 w-8 bg-gradient-to-r from-white to-transparent rtl:bg-gradient-to-l" />
+            )}
+            {canScrollEnd && (
+              <div className="pointer-events-none absolute inset-y-0 end-0 w-8 bg-gradient-to-l from-white to-transparent rtl:bg-gradient-to-r" />
+            )}
+
+            {/* arrow buttons — click to scroll, also make the "you can drag this" affordance obvious */}
+            {canScrollStart && (
+              <button
+                type="button"
+                onClick={() => scrollChipsBy(-160)}
+                aria-label="scroll left"
+                className="absolute start-0 top-1/2 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-plum-500 shadow-card ring-1 ring-black/5 transition hover:bg-plum-50 sm:flex"
+              >
+                <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+              </button>
+            )}
+            {canScrollEnd && (
+              <button
+                type="button"
+                onClick={() => scrollChipsBy(160)}
+                aria-label="scroll right"
+                className="absolute end-0 top-1/2 hidden h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-white text-plum-500 shadow-card ring-1 ring-black/5 transition hover:bg-plum-50 sm:flex"
+              >
+                <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
           <div className="hidden h-8 w-px shrink-0 bg-blush-100 sm:block" />
