@@ -177,13 +177,50 @@ export async function getOrders() {
   })
 }
 
+// Restores or re-deducts product stock when an order moves into or out of
+// 'cancelled'. Cancelling gives units back to inventory; un-cancelling (e.g.
+// an admin correcting a mistaken cancellation) takes them out again — so
+// stock always reflects only genuinely active/fulfilled orders.
 export async function updateOrderStatus(id, status) {
   if (USE_MOCK) {
     await delay(200)
+    const target = mockOrders.find((o) => o.id === id)
+    if (target) {
+      const wasCancelled = target.status === 'cancelled'
+      const willBeCancelled = status === 'cancelled'
+      if (willBeCancelled !== wasCancelled) {
+        const sign = willBeCancelled ? 1 : -1
+        mockProducts = mockProducts.map((p) => {
+          const item = target.items.find((i) => i.productId === p.id)
+          if (!item) return p
+          return { ...p, stock: Math.max(0, (p.stock ?? 0) + sign * item.quantity) }
+        })
+      }
+    }
     mockOrders = mockOrders.map((o) => (o.id === id ? { ...o, status } : o))
     return true
   }
-  const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(await getDb(), 'orders', id), { status })
+
+  const { doc, runTransaction, increment } = await import('firebase/firestore')
+  const db = await getDb()
+  const orderRef = doc(db, 'orders', id)
+
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(orderRef)
+    if (!snap.exists()) throw new Error('Order not found')
+    const order = snap.data()
+    const wasCancelled = order.status === 'cancelled'
+    const willBeCancelled = status === 'cancelled'
+
+    if (willBeCancelled !== wasCancelled) {
+      const sign = willBeCancelled ? 1 : -1
+      for (const item of order.items || []) {
+        tx.update(doc(db, 'products', item.productId), {
+          stock: increment(sign * item.quantity),
+        })
+      }
+    }
+    tx.update(orderRef, { status })
+  })
   return true
 }
