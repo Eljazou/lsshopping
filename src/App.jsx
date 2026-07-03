@@ -1,7 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ScrollToTop from './components/layout/ScrollToTop'
+import { PageLoader } from './components/ui/Spinner'
 
 import Home from './pages/Home'
 import Shop from './pages/Shop'
@@ -11,9 +13,12 @@ import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import NotFound from './pages/NotFound'
 
-import AdminLogin from './pages/admin/AdminLogin'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import RequireAdmin from './pages/admin/RequireAdmin'
+// Admin pulls in Firebase Auth/Storage and the recharts dashboard — none of
+// which storefront visitors need. Lazy-loaded so that weight only downloads
+// for someone actually navigating to /admin.
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const RequireAdmin = lazy(() => import('./pages/admin/RequireAdmin'))
 
 export default function App() {
   return (
@@ -21,13 +26,22 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         {/* Admin has its own chrome (no storefront navbar/footer) */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin/login"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <AdminLogin />
+            </Suspense>
+          }
+        />
         <Route
           path="/admin/*"
           element={
-            <RequireAdmin>
-              <AdminDashboard />
-            </RequireAdmin>
+            <Suspense fallback={<PageLoader />}>
+              <RequireAdmin>
+                <AdminDashboard />
+              </RequireAdmin>
+            </Suspense>
           }
         />
 

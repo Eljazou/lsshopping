@@ -157,3 +157,27 @@ export const BrushIcon = (p) => (
     <path d="m7.5 14.5-3 6 6-3z" />
   </svg>
 )
+
+// ── admin dashboard icons ──
+
+export const WalletIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M3 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <path d="M15 12h4v3h-4a1.5 1.5 0 0 1 0-3z" />
+  </svg>
+)
+
+export const PackageIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M3.5 7.5 12 3l8.5 4.5V16L12 21l-8.5-5z" />
+    <path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" />
+  </svg>
+)
+
+export const AlertTriangleIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M12 3.5 21.5 20h-19z" />
+    <path d="M12 9.5v4.5" />
+    <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
+  </svg>
+)
