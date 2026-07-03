@@ -54,6 +54,7 @@ export default function Navbar() {
   const links = [
     { to: '/', label: t('nav.home') },
     { to: '/shop', label: t('nav.shop') },
+    { to: '/suivi', label: t('nav.tracking') },
   ]
 
   return (

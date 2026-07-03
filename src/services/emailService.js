@@ -36,6 +36,10 @@ function buildParams(order, language) {
   return {
     to_email: order.email,
     to_name: order.customerName,
+    customer_name: order.customerName,
+    customer_phone: order.phone,
+    customer_email: order.email,
+    customer_address: `${order.address}, ${order.city} ${order.postalCode || ''}`.trim(),
     order_ref: order.orderRef,
     status_label: t(`admin.status.${order.status}`),
     subject: isNewOrder

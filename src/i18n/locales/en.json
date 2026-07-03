@@ -13,6 +13,7 @@
   "nav": {
     "home": "Home",
     "shop": "Shop",
+    "tracking": "Track Order",
     "cart": "Cart",
     "admin": "Admin",
     "search": "Search products…"

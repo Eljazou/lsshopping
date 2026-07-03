@@ -13,6 +13,7 @@
   "nav": {
     "home": "Accueil",
     "shop": "Boutique",
+    "tracking": "Suivi",
     "cart": "Panier",
     "admin": "Admin",
     "search": "Rechercher des produits…"
