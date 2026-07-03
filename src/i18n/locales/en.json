@@ -138,7 +138,17 @@
     "profileSaved": "Profile updated",
     "myOrders": "My orders",
     "noOrders": "You haven't placed any orders yet.",
-    "logout": "Log out"
+    "startShopping": "Start shopping",
+    "logout": "Log out",
+    "memberSince": "Member since {{date}}",
+    "changePhoto": "Change photo",
+    "addPhoto": "Add photo",
+    "photoUpdated": "Profile photo updated",
+    "photoError": "Couldn't upload the photo. Please try an image under 5MB.",
+    "statsOrders": "Orders",
+    "statsTotal": "Total ordered",
+    "orderCount": "{{count}} item",
+    "orderCount_other": "{{count}} items"
   },
   "reviews": {
     "title": "Customer reviews",

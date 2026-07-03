@@ -138,7 +138,17 @@
     "profileSaved": "Profil mis à jour",
     "myOrders": "Mes commandes",
     "noOrders": "Vous n'avez pas encore passé de commande.",
-    "logout": "Déconnexion"
+    "startShopping": "Découvrir la boutique",
+    "logout": "Déconnexion",
+    "memberSince": "Membre depuis {{date}}",
+    "changePhoto": "Changer la photo",
+    "addPhoto": "Ajouter une photo",
+    "photoUpdated": "Photo de profil mise à jour",
+    "photoError": "Impossible d'envoyer la photo. Essayez une image de moins de 5 Mo.",
+    "statsOrders": "Commandes",
+    "statsTotal": "Total commandé",
+    "orderCount": "{{count}} article",
+    "orderCount_other": "{{count}} articles"
   },
   "reviews": {
     "title": "Avis clients",

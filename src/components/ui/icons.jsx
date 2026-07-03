@@ -188,3 +188,30 @@ export const UserIcon = (p) => (
     <path d="M4.5 20c1.5-4 4.2-6 7.5-6s6 2 7.5 6" />
   </svg>
 )
+
+export const CameraIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+    <circle cx="12" cy="13" r="3.2" />
+  </svg>
+)
+
+export const MapPinIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+)
+
+export const PhoneIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <path d="M4 5c0-.6.4-1 1-1h2.2c.5 0 .9.3 1 .8l.8 3c.1.4 0 .8-.3 1.1L8.2 10.3a12 12 0 0 0 5.5 5.5l1.4-1.5c.3-.3.7-.4 1.1-.3l3 .8c.5.1.8.5.8 1V18a1 1 0 0 1-1 1A15 15 0 0 1 4 5z" />
+  </svg>
+)
+
+export const MailIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <path d="m3.5 7 8.5 6 8.5-6" />
+  </svg>
+)

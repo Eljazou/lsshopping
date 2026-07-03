@@ -27,6 +27,15 @@ export function formatDate(value, language = 'fr') {
   }).format(date)
 }
 
+// Month + year only, e.g. "juillet 2026" — used for "member since".
+export function formatMonthYear(value, language = 'fr') {
+  if (!value) return ''
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const locale = INTL_LOCALES[language] || 'fr-MA'
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date)
+}
+
 // Pick the localized field from a { en, fr, ar } object, with graceful fallback.
 export function localized(field, language = 'fr') {
   if (field == null) return ''

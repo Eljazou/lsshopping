@@ -138,7 +138,17 @@
     "profileSaved": "تم تحديث الملف الشخصي",
     "myOrders": "طلباتي",
     "noOrders": "لم تقومي بأي طلب بعد.",
-    "logout": "تسجيل الخروج"
+    "startShopping": "اكتشفي المتجر",
+    "logout": "تسجيل الخروج",
+    "memberSince": "عضوة منذ {{date}}",
+    "changePhoto": "تغيير الصورة",
+    "addPhoto": "إضافة صورة",
+    "photoUpdated": "تم تحديث صورة الملف الشخصي",
+    "photoError": "تعذّر رفع الصورة. جرّبي صورة أصغر من 5 ميغابايت.",
+    "statsOrders": "الطلبات",
+    "statsTotal": "إجمالي الطلبات",
+    "orderCount": "{{count}} منتج",
+    "orderCount_other": "{{count}} منتجات"
   },
   "reviews": {
     "title": "آراء الزبونات",

@@ -46,13 +46,23 @@ export default function AccountMenu() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative flex items-center gap-1 rounded-full p-2 text-ink transition hover:bg-blush-50"
+        className="relative flex items-center gap-1 rounded-full p-1.5 text-ink transition hover:bg-blush-50"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('nav.account')}
       >
-        <UserIcon className="h-6 w-6" />
-        <span className="absolute end-1.5 top-1.5 h-2 w-2 rounded-full bg-plum-500 ring-2 ring-white" />
+        {profile?.avatarUrl ? (
+          <img
+            src={profile.avatarUrl}
+            alt=""
+            className="h-7 w-7 rounded-full object-cover ring-1 ring-plum-200"
+          />
+        ) : (
+          <span className="relative flex h-7 w-7 items-center justify-center">
+            <UserIcon className="h-6 w-6" />
+            <span className="absolute end-0 top-0 h-2 w-2 rounded-full bg-plum-500 ring-2 ring-white" />
+          </span>
+        )}
         <ChevronDown className="hidden h-3.5 w-3.5 text-plum-400 sm:block" />
       </button>
 

@@ -12,6 +12,7 @@ import {
   USE_MOCK,
   getDb,
   getAuthInstance,
+  getStorageInstance,
   getAdminDb,
   getAdminStorageInstance,
 } from '../config/firebase'
@@ -197,7 +198,13 @@ export async function getCustomerProfile(uid) {
   }
   const { doc, getDoc } = await import('firebase/firestore')
   const snap = await getDoc(doc(await getDb(), 'customers', uid))
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+  if (!snap.exists()) return null
+  const data = snap.data()
+  return {
+    id: snap.id,
+    ...data,
+    createdAt: data.createdAt?.toDate?.().toISOString?.() ?? data.createdAt ?? null,
+  }
 }
 
 export async function updateCustomerProfile(uid, data) {
@@ -209,6 +216,37 @@ export async function updateCustomerProfile(uid, data) {
   const { doc, updateDoc } = await import('firebase/firestore')
   await updateDoc(doc(await getDb(), 'customers', uid), data)
   return true
+}
+
+// Uploads the customer's profile photo to their own Storage folder and saves
+// the resulting URL on their profile. Runs on the customer's own (default)
+// Firebase app, so Storage rules see them as the folder's owner. Best-effort
+// deletes the previous photo so old files don't pile up.
+export async function uploadCustomerAvatar(uid, file, previousUrl) {
+  if (USE_MOCK) {
+    await delay(400)
+    const url = URL.createObjectURL(file)
+    mockCustomers = mockCustomers.map((c) => (c.uid === uid ? { ...c, avatarUrl: url } : c))
+    return url
+  }
+  const storage = await getStorageInstance()
+  const { ref, uploadBytes, getDownloadURL, deleteObject } = await import('firebase/storage')
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+  const storageRef = ref(storage, `customers/${uid}/avatar_${Date.now()}.${ext}`)
+  await uploadBytes(storageRef, file)
+  const url = await getDownloadURL(storageRef)
+
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(await getDb(), 'customers', uid), { avatarUrl: url })
+
+  if (previousUrl && previousUrl.includes('firebasestorage')) {
+    try {
+      await deleteObject(ref(storage, previousUrl))
+    } catch {
+      /* old file already gone or inaccessible — ignore */
+    }
+  }
+  return url
 }
 
 // ─────────────────────── ORDERS ───────────────────────

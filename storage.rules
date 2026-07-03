@@ -3,8 +3,12 @@ rules_version = '2';
 // ─────────────────────────────────────────────────────────────
 //  L&S Shopping — Firebase Storage security rules
 //
-//  Product images: publicly readable (the storefront displays them),
-//  uploads/deletes only allowed for an authenticated (admin) user.
+//  • products/…       — product images: publicly readable (shown on the
+//                       storefront), writable/deletable only by an
+//                       authenticated (admin) user.
+//  • customers/{uid}/… — a customer's own profile photo: publicly readable
+//                       (so it renders in the navbar / account page),
+//                       writable/deletable only by that same customer.
 // ─────────────────────────────────────────────────────────────
 service firebase.storage {
   match /b/{bucket}/o {
@@ -14,6 +18,15 @@ service firebase.storage {
         && request.resource.size < 5 * 1024 * 1024 // 5MB max
         && request.resource.contentType.matches('image/.*');
       allow delete: if request.auth != null;
+    }
+
+    match /customers/{uid}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024 // 5MB max
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
   }
 }
