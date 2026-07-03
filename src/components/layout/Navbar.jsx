@@ -212,12 +212,6 @@ export default function Navbar() {
                 {t('account.logout')}
               </button>
             )}
-            <Link
-              to="/admin"
-              className="rounded-2xl px-4 py-3 text-base font-medium text-ink/50 hover:bg-blush-50"
-            >
-              {t('nav.admin')}
-            </Link>
           </div>
         </nav>
       </div>

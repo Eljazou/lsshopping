@@ -132,9 +132,6 @@ export default function Footer() {
               </a>
             </li>
           </ul>
-          <Link to="/admin" className="mt-4 inline-block text-xs text-white/30 hover:text-white/60">
-            {t('nav.admin')}
-          </Link>
         </div>
       </div>
 
