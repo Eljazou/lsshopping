@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCart } from '../context/CartContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
+import { useCustomerAuth } from '../context/CustomerAuthContext'
 import { createOrder } from '../services/dataService'
 import { sendCustomerStatusEmail } from '../services/emailService'
 import { formatPrice, localized } from '../utils/format'
@@ -40,8 +41,10 @@ export default function Checkout() {
   const { t } = useTranslation()
   const { language } = useLanguage()
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
   const { items, subtotal, clearCart } = useCart()
+  const { user, profile, signUp } = useCustomerAuth()
 
   const [form, setForm] = useState({
     customerName: '',
@@ -51,9 +54,26 @@ export default function Checkout() {
     city: '',
     postalCode: '',
     notes: '',
+    password: '',
   })
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+
+  // Once signed in, prefill delivery details from the saved profile — still
+  // editable per order (e.g. shipping somewhere other than home this time).
+  useEffect(() => {
+    if (profile) {
+      setForm((f) => ({
+        ...f,
+        customerName: profile.customerName || f.customerName,
+        email: profile.email || f.email,
+        phone: profile.phone || f.phone,
+        address: profile.address || f.address,
+        city: profile.city || f.city,
+        postalCode: profile.postalCode || f.postalCode,
+      }))
+    }
+  }, [profile])
 
   // If the cart is empty (and we're not mid-submit), go back to the cart.
   if (items.length === 0 && !submitting) {
@@ -68,8 +88,11 @@ export default function Checkout() {
   const validate = () => {
     const next = {}
     if (!form.customerName.trim()) next.customerName = t('checkout.required')
-    if (!form.email.trim()) next.email = t('checkout.required')
-    else if (!EMAIL_RE.test(form.email)) next.email = t('checkout.invalidEmail')
+    if (!user) {
+      if (!form.email.trim()) next.email = t('checkout.required')
+      else if (!EMAIL_RE.test(form.email)) next.email = t('checkout.invalidEmail')
+      if (form.password.length < 6) next.password = t('account.passwordTooShort')
+    }
     if (!form.phone.trim()) next.phone = t('checkout.required')
     else if (!PHONE_RE.test(form.phone)) next.phone = t('checkout.invalidPhone')
     if (!form.address.trim()) next.address = t('checkout.required')
@@ -86,8 +109,36 @@ export default function Checkout() {
     }
     setSubmitting(true)
     try {
+      // First-time buyer: creating the account IS part of placing the order.
+      // Returning buyer: already signed in, just reuse their uid.
+      let customerId = user?.uid
+      if (!customerId) {
+        try {
+          const newUser = await signUp({
+            email: form.email,
+            password: form.password,
+            customerName: form.customerName,
+            phone: form.phone,
+            address: form.address,
+            city: form.city,
+            postalCode: form.postalCode,
+          })
+          customerId = newUser.uid
+        } catch (err) {
+          if (err.code === 'auth/email-already-in-use') {
+            setErrors({ email: t('account.emailInUse') })
+            toast(t('account.emailInUse'), 'error')
+          } else {
+            toast(t('account.genericError'), 'error')
+          }
+          setSubmitting(false)
+          return
+        }
+      }
+
       const order = {
         ...form,
+        customerId,
         items: items.map((i) => ({
           productId: i.id,
           name: localized(i.name, language),
@@ -96,6 +147,7 @@ export default function Checkout() {
         })),
         total: subtotal,
       }
+      delete order.password
       const saved = await createOrder(order)
       // Fire the customer confirmation email (stubbed until EmailJS is
       // configured). Never block checkout on email delivery.
@@ -127,6 +179,29 @@ export default function Checkout() {
             </div>
           </div>
 
+          {/* account status banner */}
+          {user ? (
+            <div className="mb-6 flex items-center justify-between rounded-2xl border border-plum-100 bg-plum-50/50 p-4 text-sm">
+              <span className="text-ink/70">
+                {t('account.signedInAs')} <strong>{profile?.email || user.email}</strong>
+              </span>
+              <Link to="/compte" className="font-medium text-plum-600 hover:text-plum-700">
+                {t('account.myAccount')}
+              </Link>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-2xl border border-blush-100 bg-blush-50/50 p-4 text-sm text-ink/70">
+              {t('account.checkoutCreatesAccount')}{' '}
+              <Link
+                to="/connexion"
+                state={{ from: location }}
+                className="font-medium text-plum-600 hover:text-plum-700"
+              >
+                {t('account.alreadyHaveAccount')}
+              </Link>
+            </div>
+          )}
+
           <div className="card p-6">
             <h2 className="mb-5 font-display text-xl font-semibold">
               {t('checkout.contactInfo')}
@@ -147,6 +222,7 @@ export default function Checkout() {
                 type="email"
                 required
                 autoComplete="email"
+                disabled={!!user}
                 value={form.email}
                 error={errors.email}
                 onChange={setField('email')}
@@ -190,6 +266,19 @@ export default function Checkout() {
                 error={errors.address}
                 onChange={setField('address')}
               />
+
+              {!user && (
+                <Field
+                  name="password"
+                  label={t('account.password')}
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={form.password}
+                  error={errors.password}
+                  onChange={setField('password')}
+                />
+              )}
 
               <div className="sm:col-span-2">
                 <label className="label" htmlFor="notes">

@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCart } from '../../context/CartContext'
+import { useCustomerAuth } from '../../context/CustomerAuthContext'
 import LanguageSwitcher from './LanguageSwitcher'
 import CartDrawer from '../cart/CartDrawer'
-import { CartIcon, SearchIcon, MenuIcon, CloseIcon } from '../ui/icons'
+import { CartIcon, SearchIcon, MenuIcon, CloseIcon, UserIcon } from '../ui/icons'
 
 export default function Navbar() {
   const { t } = useTranslation()
   const { count } = useCart()
+  const { isAuthed: customerAuthed } = useCustomerAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -112,6 +114,17 @@ export default function Navbar() {
 
             <LanguageSwitcher compact />
 
+            <Link
+              to={customerAuthed ? '/compte' : '/connexion'}
+              className="relative rounded-full p-2 text-ink transition hover:bg-blush-50"
+              aria-label={t('nav.account')}
+            >
+              <UserIcon className="h-6 w-6" />
+              {customerAuthed && (
+                <span className="absolute end-1.5 top-1.5 h-2 w-2 rounded-full bg-plum-500 ring-2 ring-white" />
+              )}
+            </Link>
+
             <button
               onClick={() => setCartOpen(true)}
               className="relative rounded-full p-2 text-ink transition hover:bg-blush-50"
@@ -184,6 +197,17 @@ export default function Navbar() {
                 {l.label}
               </NavLink>
             ))}
+            <NavLink
+              to={customerAuthed ? '/compte' : '/connexion'}
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-2xl px-4 py-3 text-base font-medium transition ${
+                  isActive ? 'bg-blush-50 text-plum-600' : 'text-ink hover:bg-blush-50'
+                }`
+              }
+            >
+              <UserIcon className="h-5 w-5" />
+              {customerAuthed ? t('account.myAccount') : t('nav.account')}
+            </NavLink>
             <Link
               to="/admin"
               className="rounded-2xl px-4 py-3 text-base font-medium text-ink/50 hover:bg-blush-50"

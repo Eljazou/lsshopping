@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ScrollToTop from './components/layout/ScrollToTop'
@@ -11,7 +11,9 @@ import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
-import OrderTracking from './pages/OrderTracking'
+import CustomerLogin from './pages/CustomerLogin'
+import CustomerAccount from './pages/CustomerAccount'
+import RequireCustomer from './pages/RequireCustomer'
 import NotFound from './pages/NotFound'
 
 // Admin pulls in Firebase Auth/Storage and the recharts dashboard — none of
@@ -60,8 +62,18 @@ export default function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/confirmation" element={<OrderConfirmation />} />
-                  <Route path="/suivi" element={<OrderTracking />} />
-                  <Route path="/suivi/:ref" element={<OrderTracking />} />
+                  <Route path="/connexion" element={<CustomerLogin />} />
+                  <Route
+                    path="/compte"
+                    element={
+                      <RequireCustomer>
+                        <CustomerAccount />
+                      </RequireCustomer>
+                    }
+                  />
+                  {/* legacy tracking links now live inside the account page */}
+                  <Route path="/suivi" element={<Navigate to="/compte" replace />} />
+                  <Route path="/suivi/:ref" element={<Navigate to="/compte" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

@@ -7,6 +7,7 @@ import App from './App.jsx'
 import { LanguageProvider } from './context/LanguageContext.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { AdminAuthProvider } from './context/AdminAuthContext.jsx'
+import { CustomerAuthProvider } from './context/CustomerAuthContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,9 +16,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <LanguageProvider>
         <ToastProvider>
           <CartProvider>
-            <AdminAuthProvider>
-              <App />
-            </AdminAuthProvider>
+            <CustomerAuthProvider>
+              <AdminAuthProvider>
+                <App />
+              </AdminAuthProvider>
+            </CustomerAuthProvider>
           </CartProvider>
         </ToastProvider>
       </LanguageProvider>

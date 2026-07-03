@@ -14,6 +14,7 @@
     "home": "Home",
     "shop": "Shop",
     "tracking": "Track Order",
+    "account": "Account",
     "cart": "Cart",
     "admin": "Admin",
     "search": "Search products…"
@@ -112,15 +113,32 @@
     "summary": "Order summary"
   },
   "tracking": {
-    "title": "Track your order",
-    "subtitle": "Enter your order reference to see its current status.",
-    "placeholder": "e.g. ECL-7F3K9Q",
-    "searchCta": "Track",
-    "notFoundTitle": "No order found",
-    "notFoundText": "Double-check the reference — it's the code shown on your confirmation page (e.g. ECL-7F3K9Q).",
-    "statusTitle": "Order status",
     "cancelledTitle": "This order was cancelled",
     "pendingStep": "Not yet reached"
+  },
+  "account": {
+    "createTitle": "Create your account",
+    "createSubtitle": "One quick account so you can track every order you place.",
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in to place your order and see your order history.",
+    "password": "Password",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "createCta": "Create account",
+    "loginCta": "Sign in",
+    "alreadyHaveAccount": "Already have an account? Sign in",
+    "needAccount": "Need an account? Create one",
+    "welcomeToast": "Account created — welcome!",
+    "emailInUse": "This email already has an account. Please sign in instead.",
+    "genericError": "Something went wrong. Please try again.",
+    "invalidLogin": "Incorrect email or password.",
+    "signedInAs": "Signed in as",
+    "checkoutCreatesAccount": "Placing an order creates your account, so you can track it afterwards.",
+    "myAccount": "My Account",
+    "profileTitle": "My details",
+    "profileSaved": "Profile updated",
+    "myOrders": "My orders",
+    "noOrders": "You haven't placed any orders yet.",
+    "logout": "Log out"
   },
   "reviews": {
     "title": "Customer reviews",

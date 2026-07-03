@@ -181,3 +181,10 @@ export const AlertTriangleIcon = (p) => (
     <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" />
   </svg>
 )
+
+export const UserIcon = (p) => (
+  <svg {...base} width="24" height="24" {...p}>
+    <circle cx="12" cy="8" r="3.5" />
+    <path d="M4.5 20c1.5-4 4.2-6 7.5-6s6 2 7.5 6" />
+  </svg>
+)

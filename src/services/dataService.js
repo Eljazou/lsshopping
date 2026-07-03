@@ -8,7 +8,7 @@
 //  In LIVE mode it talks to Firestore. Swapping between the two is just the
 //  env flag — no page or component changes required.
 // ─────────────────────────────────────────────────────────────
-import { USE_MOCK, getDb, getStorageInstance } from '../config/firebase'
+import { USE_MOCK, getDb, getAuthInstance, getStorageInstance } from '../config/firebase'
 import { PRODUCTS } from '../data/products'
 import { generateOrderRef } from '../utils/orderRef'
 
@@ -20,6 +20,8 @@ const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms))
 // ── in-memory mock state ──
 let mockProducts = PRODUCTS.map((p) => ({ ...p }))
 let mockOrders = []
+let mockCustomers = [] // { uid, email, password, customerName, phone, address, city, postalCode }
+let mockNextUid = 1
 
 // ─────────────────────── PRODUCTS ───────────────────────
 
@@ -108,14 +110,102 @@ export async function deleteProductImage(url) {
   }
 }
 
+// ─────────────────────── CUSTOMER ACCOUNTS ───────────────────────
+//
+// Placing an order now requires a customer account: a first-time buyer
+// creates one right at checkout (name/phone/address + a password), a
+// returning one just signs in. The account's profile doc mirrors the
+// checkout fields so future orders (and the account page) can prefill from
+// it. Firestore rules only let a customer read/write their *own* profile —
+// never another customer's.
+
+export async function signUpCustomer({ email, password, customerName, phone, address, city, postalCode }) {
+  if (USE_MOCK) {
+    await delay(400)
+    if (mockCustomers.some((c) => c.email === email)) {
+      const err = new Error('Email already in use')
+      err.code = 'auth/email-already-in-use'
+      throw err
+    }
+    const uid = `mock-customer-${mockNextUid++}`
+    const customer = { uid, email, password, customerName, phone, address, city, postalCode: postalCode || '' }
+    mockCustomers = [...mockCustomers, customer]
+    return { uid, email }
+  }
+
+  const auth = await getAuthInstance()
+  const { createUserWithEmailAndPassword } = await import('firebase/auth')
+  const credential = await createUserWithEmailAndPassword(auth, email, password)
+
+  const { doc, setDoc, serverTimestamp } = await import('firebase/firestore')
+  await setDoc(doc(await getDb(), 'customers', credential.user.uid), {
+    customerName,
+    email,
+    phone,
+    address,
+    city,
+    postalCode: postalCode || '',
+    createdAt: serverTimestamp(),
+  })
+  return credential.user
+}
+
+export async function signInCustomer(email, password) {
+  if (USE_MOCK) {
+    await delay(300)
+    const found = mockCustomers.find((c) => c.email === email && c.password === password)
+    if (!found) {
+      const err = new Error('Invalid credentials')
+      err.code = 'auth/invalid-credential'
+      throw err
+    }
+    return { uid: found.uid, email: found.email }
+  }
+  const auth = await getAuthInstance()
+  const { signInWithEmailAndPassword } = await import('firebase/auth')
+  const credential = await signInWithEmailAndPassword(auth, email, password)
+  return credential.user
+}
+
+export async function signOutCustomer() {
+  if (USE_MOCK) {
+    await delay(100)
+    return true
+  }
+  const auth = await getAuthInstance()
+  const { signOut } = await import('firebase/auth')
+  await signOut(auth)
+  return true
+}
+
+export async function getCustomerProfile(uid) {
+  if (USE_MOCK) {
+    await delay(150)
+    const found = mockCustomers.find((c) => c.uid === uid)
+    return found ? { id: uid, ...found } : null
+  }
+  const { doc, getDoc } = await import('firebase/firestore')
+  const snap = await getDoc(doc(await getDb(), 'customers', uid))
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+}
+
+export async function updateCustomerProfile(uid, data) {
+  if (USE_MOCK) {
+    await delay(200)
+    mockCustomers = mockCustomers.map((c) => (c.uid === uid ? { ...c, ...data } : c))
+    return true
+  }
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(await getDb(), 'customers', uid), data)
+  return true
+}
+
 // ─────────────────────── ORDERS ───────────────────────
 //
-// Order documents are keyed by their own orderRef (e.g. "ECL-7F3K9Q") instead
-// of an auto-generated ID. That's what makes public order tracking possible
-// without accounts: firestore.rules allows a public *get* of a single order
-// by that exact ID (you have to already know the code — same trust model as
-// a parcel tracking number) while still blocking *list* to admins only, so
-// no one can browse/enumerate all orders.
+// Order documents are keyed by their own orderRef (e.g. "ECL-7F3K9Q") for a
+// friendly, human-readable ID. Every order carries a customerId, and
+// firestore.rules only let that customer (or an admin) read it — this is
+// what "sign in to see my orders" (account page / tracking) is built on.
 
 export async function createOrder(order) {
   if (USE_MOCK) {
@@ -201,22 +291,22 @@ export async function getOrders() {
   return snap.docs.map((d) => normalizeOrderDoc(d.id, d.data()))
 }
 
-// Public lookup for the order tracking page — no admin session required.
-// Returns null both when the ref doesn't exist and on any read error, so a
-// wrong code and a real error look the same to an anonymous visitor.
-export async function getOrderByRef(ref) {
+// The signed-in customer's own order history — powers the account/tracking
+// page. firestore.rules only return documents where customerId matches the
+// caller, so this can never surface anyone else's orders.
+export async function getMyOrders(uid) {
   if (USE_MOCK) {
     await delay(300)
-    const found = mockOrders.find((o) => o.orderRef === ref)
-    return found ? { ...found } : null
+    return mockOrders
+      .filter((o) => o.customerId === uid)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   }
-  try {
-    const { doc, getDoc } = await import('firebase/firestore')
-    const snap = await getDoc(doc(await getDb(), 'orders', ref))
-    return snap.exists() ? normalizeOrderDoc(snap.id, snap.data()) : null
-  } catch {
-    return null
-  }
+  const { collection, getDocs, query, where } = await import('firebase/firestore')
+  const q = query(collection(await getDb(), 'orders'), where('customerId', '==', uid))
+  const snap = await getDocs(q)
+  return snap.docs
+    .map((d) => normalizeOrderDoc(d.id, d.data()))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
 // Restores or re-deducts product stock when an order moves into or out of
