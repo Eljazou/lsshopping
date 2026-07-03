@@ -9,12 +9,14 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     /* Soft blush canvas (matches the hero gradient's top colour) so the
        floating navbar reads as detached instead of sitting on a white band. */
     @apply bg-blush-50 text-ink font-body antialiased;
+    overflow-x: hidden;
   }
 
   /* Arabic / RTL typography */

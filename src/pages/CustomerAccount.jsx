@@ -208,11 +208,11 @@ export default function CustomerAccount() {
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:text-start">
             {/* avatar + upload */}
             <div className="relative shrink-0">
-              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blush-400 to-plum-500 shadow-soft ring-4 ring-white">
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blush-400 to-plum-500 shadow-soft ring-4 ring-white sm:h-28 sm:w-28">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="font-display text-4xl font-semibold text-white">
+                  <span className="font-display text-3xl font-semibold text-white sm:text-4xl">
                     {initialsOf(profile.customerName) || '👤'}
                   </span>
                 )}
@@ -228,7 +228,7 @@ export default function CustomerAccount() {
                 disabled={uploadingAvatar}
                 aria-label={avatarUrl ? t('account.changePhoto') : t('account.addPhoto')}
                 title={avatarUrl ? t('account.changePhoto') : t('account.addPhoto')}
-                className="absolute bottom-1 end-1 flex h-9 w-9 items-center justify-center rounded-full bg-white text-plum-600 shadow-card ring-1 ring-black/5 transition hover:bg-plum-50 disabled:opacity-50"
+                className="absolute bottom-0.5 end-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white text-plum-600 shadow-card ring-1 ring-black/5 transition hover:bg-plum-50 disabled:opacity-50 sm:bottom-1 sm:end-1 sm:h-9 sm:w-9"
               >
                 <CameraIcon className="h-4 w-4" />
               </button>
@@ -242,11 +242,11 @@ export default function CustomerAccount() {
             </div>
 
             {/* identity */}
-            <div className="flex-1">
-              <h1 className="font-display text-3xl font-semibold sm:text-4xl">
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate font-display text-2xl font-semibold sm:text-3xl lg:text-4xl">
                 {profile.customerName}
               </h1>
-              <p className="mt-1 text-ink/60">{profile.email}</p>
+              <p className="mt-1 truncate text-sm text-ink/60 sm:text-base">{profile.email}</p>
               {profile.createdAt && (
                 <p className="mt-1 text-xs text-plum-500">
                   {t('account.memberSince', { date: formatMonthYear(profile.createdAt, language) })}
@@ -256,32 +256,32 @@ export default function CustomerAccount() {
 
             <button
               onClick={handleLogout}
-              className="btn-outline shrink-0 bg-white/70 backdrop-blur"
+              className="btn-outline w-full shrink-0 bg-white/70 backdrop-blur sm:w-auto"
             >
               {t('account.logout')}
             </button>
           </div>
 
           {/* stat tiles */}
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:max-w-md">
-            <div className="flex items-center gap-3 rounded-2xl bg-white/70 p-4 shadow-sm backdrop-blur">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-plum-100 text-plum-600">
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:max-w-md sm:gap-4">
+            <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-white/70 p-3 shadow-sm backdrop-blur sm:gap-3 sm:p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-plum-100 text-plum-600 sm:h-11 sm:w-11">
                 <CartIcon className="h-5 w-5" />
               </span>
-              <div>
-                <p className="text-2xl font-semibold leading-none">{stats.count}</p>
-                <p className="mt-1 text-xs text-ink/50">{t('account.statsOrders')}</p>
+              <div className="min-w-0">
+                <p className="truncate text-xl font-semibold leading-none sm:text-2xl">{stats.count}</p>
+                <p className="mt-1 truncate text-xs text-ink/50">{t('account.statsOrders')}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl bg-white/70 p-4 shadow-sm backdrop-blur">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blush-100 text-blush-600">
+            <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-white/70 p-3 shadow-sm backdrop-blur sm:gap-3 sm:p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blush-100 text-blush-600 sm:h-11 sm:w-11">
                 <WalletIcon className="h-5 w-5" />
               </span>
-              <div>
-                <p className="text-2xl font-semibold leading-none text-blush-600">
+              <div className="min-w-0">
+                <p className="truncate text-xl font-semibold leading-none text-blush-600 sm:text-2xl">
                   {formatPrice(stats.total, language)}
                 </p>
-                <p className="mt-1 text-xs text-ink/50">{t('account.statsTotal')}</p>
+                <p className="mt-1 truncate text-xs text-ink/50">{t('account.statsTotal')}</p>
               </div>
             </div>
           </div>
@@ -292,8 +292,8 @@ export default function CustomerAccount() {
       <div className="container-x py-10 lg:py-14">
         <div className="grid gap-8 lg:grid-cols-5">
           {/* profile details */}
-          <div className="lg:col-span-2">
-            <div className="card p-6">
+          <div className="min-w-0 lg:col-span-2">
+            <div className="card p-5 sm:p-6">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold">{t('account.profileTitle')}</h2>
                 {!editing && (
@@ -385,7 +385,7 @@ export default function CustomerAccount() {
           </div>
 
           {/* orders */}
-          <div className="lg:col-span-3">
+          <div className="min-w-0 lg:col-span-3">
             <h2 className="mb-4 font-display text-lg font-semibold">{t('account.myOrders')}</h2>
             {loadingOrders ? (
               <div className="flex justify-center py-10">
@@ -407,10 +407,10 @@ export default function CustomerAccount() {
                   const itemCount = (o.items || []).reduce((n, i) => n + i.quantity, 0)
                   return (
                     <div key={o.id} className="card overflow-hidden">
-                      <div className="flex flex-wrap items-center justify-between gap-2 bg-blush-50/40 px-5 py-4">
-                        <div>
-                          <p className="font-mono text-sm font-semibold text-plum-600">{o.orderRef}</p>
-                          <p className="text-xs text-ink/40">
+                      <div className="flex flex-wrap items-center justify-between gap-2 bg-blush-50/40 px-4 py-4 sm:px-5">
+                        <div className="min-w-0">
+                          <p className="truncate font-mono text-sm font-semibold text-plum-600">{o.orderRef}</p>
+                          <p className="truncate text-xs text-ink/40">
                             {formatDate(o.createdAt, language)} ·{' '}
                             {t('account.orderCount', { count: itemCount })}
                           </p>
@@ -422,16 +422,16 @@ export default function CustomerAccount() {
                           </span>
                         </div>
                       </div>
-                      <div className="px-5 pt-4">
+                      <div className="px-4 pt-4 sm:px-5">
                         <OrderTimeline order={o} t={t} language={language} />
                       </div>
-                      <ul className="space-y-1 border-t border-blush-50 px-5 py-4 text-sm">
+                      <ul className="space-y-1 border-t border-blush-50 px-4 py-4 text-sm sm:px-5">
                         {(o.items || []).map((item, i) => (
-                          <li key={i} className="flex justify-between text-ink/70">
-                            <span>
+                          <li key={i} className="flex justify-between gap-2 text-ink/70">
+                            <span className="min-w-0 truncate">
                               {item.name} × {item.quantity}
                             </span>
-                            <span>{formatPrice(item.price * item.quantity, language)}</span>
+                            <span className="shrink-0">{formatPrice(item.price * item.quantity, language)}</span>
                           </li>
                         ))}
                       </ul>
