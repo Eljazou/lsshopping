@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
 import { createOrder } from '../services/dataService'
-import { sendOrderEmail } from '../services/emailService'
+import { sendOrderEmail, sendCustomerStatusEmail } from '../services/emailService'
 import { formatPrice, localized } from '../utils/format'
 import ProductImage from '../components/ui/ProductImage'
 import Spinner from '../components/ui/Spinner'
@@ -97,8 +97,10 @@ export default function Checkout() {
         total: subtotal,
       }
       const saved = await createOrder(order)
-      // Fire the owner notification (stubbed until EmailJS is configured).
+      // Fire the owner + customer notifications (stubbed until EmailJS is
+      // configured). Never block checkout on email delivery.
       sendOrderEmail(saved).catch(() => {})
+      sendCustomerStatusEmail(saved, language).catch(() => {})
       clearCart()
       navigate('/confirmation', { state: { order: saved } })
     } catch (err) {

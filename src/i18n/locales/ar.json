@@ -3,6 +3,13 @@
     "name": "L&S",
     "tagline": "أظهري إشراقتك الطبيعية"
   },
+  "email": {
+    "newOrderSubject": "تم استلام طلبكِ {{ref}}",
+    "statusUpdateSubject": "تحديث بخصوص طلبكِ {{ref}}",
+    "newOrderIntro": "مرحباً {{name}}، شكراً لطلبكِ! إليكِ الملخص:",
+    "statusUpdateIntro": "مرحباً {{name}}، تم للتو تغيير حالة طلبكِ:",
+    "trackingCta": "تتبّعي طلبكِ"
+  },
   "nav": {
     "home": "الرئيسية",
     "shop": "المتجر",

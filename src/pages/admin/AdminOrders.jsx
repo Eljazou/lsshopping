@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getOrders, updateOrderStatus, ORDER_STATUSES } from '../../services/dataService'
+import { sendCustomerStatusEmail } from '../../services/emailService'
 import { useLanguage } from '../../context/LanguageContext'
 import { useToast } from '../../context/ToastContext'
 import { formatPrice, formatDate } from '../../utils/format'
@@ -63,6 +64,8 @@ export default function AdminOrders() {
     setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status } : o)))
     try {
       await updateOrderStatus(order.id, status)
+      // Keep the customer in the loop at every step, not just once at checkout.
+      sendCustomerStatusEmail({ ...order, status }, language).catch(() => {})
       toast(t('admin.status.' + status))
     } catch {
       toast('Update failed', 'error')

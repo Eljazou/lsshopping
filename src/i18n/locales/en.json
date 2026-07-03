@@ -3,6 +3,13 @@
     "name": "L&S",
     "tagline": "Reveal your natural radiance"
   },
+  "email": {
+    "newOrderSubject": "Your order {{ref}} has been received",
+    "statusUpdateSubject": "Update on your order {{ref}}",
+    "newOrderIntro": "Hi {{name}}, thank you for your order! Here's a summary:",
+    "statusUpdateIntro": "Hi {{name}}, your order status has just changed:",
+    "trackingCta": "Track your order"
+  },
   "nav": {
     "home": "Home",
     "shop": "Shop",

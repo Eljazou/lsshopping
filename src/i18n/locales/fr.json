@@ -3,6 +3,13 @@
     "name": "L&S",
     "tagline": "Révélez votre éclat naturel"
   },
+  "email": {
+    "newOrderSubject": "Votre commande {{ref}} a été reçue",
+    "statusUpdateSubject": "Mise à jour de votre commande {{ref}}",
+    "newOrderIntro": "Bonjour {{name}}, merci pour votre commande ! Voici le récapitulatif :",
+    "statusUpdateIntro": "Bonjour {{name}}, le statut de votre commande vient de changer :",
+    "trackingCta": "Suivre ma commande"
+  },
   "nav": {
     "home": "Accueil",
     "shop": "Boutique",
