@@ -1,29 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCustomerAuth } from '../context/CustomerAuthContext'
 import { useLanguage } from '../context/LanguageContext'
 import { useToast } from '../context/ToastContext'
-import {
-  getMyOrders,
-  updateCustomerProfile,
-  uploadCustomerAvatar,
-} from '../services/dataService'
-import { formatPrice, formatDate, formatMonthYear } from '../utils/format'
+import { updateCustomerProfile, uploadCustomerAvatar } from '../services/dataService'
+import { formatMonthYear } from '../utils/format'
 import Spinner, { PageLoader } from '../components/ui/Spinner'
-import StatusBadge from './admin/StatusBadge'
 import {
-  CheckIcon,
-  AlertTriangleIcon,
   CameraIcon,
   MapPinIcon,
   PhoneIcon,
   MailIcon,
   CartIcon,
-  WalletIcon,
+  ArrowRight,
 } from '../components/ui/icons'
-
-const STEPS = ['pending', 'confirmed', 'delivered']
 
 function initialsOf(name = '') {
   return name
@@ -32,66 +23,6 @@ function initialsOf(name = '') {
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() || '')
     .join('')
-}
-
-function OrderTimeline({ order, t, language }) {
-  if (order.status === 'cancelled') {
-    const cancelEntry = [...(order.statusHistory || [])].reverse().find((h) => h.status === 'cancelled')
-    return (
-      <div className="flex items-start gap-3 rounded-2xl border border-rose-100 bg-rose-50 p-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-          <AlertTriangleIcon className="h-5 w-5" />
-        </span>
-        <div>
-          <p className="font-semibold text-rose-700">{t('tracking.cancelledTitle')}</p>
-          {cancelEntry && (
-            <p className="text-sm text-rose-600/70">{formatDate(cancelEntry.changedAt, language)}</p>
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  const currentIndex = STEPS.indexOf(order.status)
-
-  return (
-    <ol>
-      {STEPS.map((s, i) => {
-        const entry = (order.statusHistory || []).find((h) => h.status === s)
-        const done = i <= currentIndex
-        const isLast = i === STEPS.length - 1
-        return (
-          <li key={s} className="flex gap-3">
-            <div className="flex flex-col items-center">
-              <span
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition ${
-                  done ? 'bg-plum-500 text-white' : 'bg-blush-100 text-plum-300'
-                }`}
-              >
-                {done ? <CheckIcon className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-current" />}
-              </span>
-              {!isLast && (
-                <span
-                  className={`w-px flex-1 ${i < currentIndex ? 'bg-plum-400' : 'bg-blush-100'}`}
-                  style={{ minHeight: '2rem' }}
-                />
-              )}
-            </div>
-            <div className={isLast ? 'pb-1' : 'pb-6'}>
-              <p className={`text-sm font-medium ${done ? 'text-ink' : 'text-ink/40'}`}>
-                {t(`admin.status.${s}`)}
-              </p>
-              {entry ? (
-                <p className="text-xs text-ink/40">{formatDate(entry.changedAt, language)}</p>
-              ) : (
-                <p className="text-xs text-ink/30">{t('tracking.pendingStep')}</p>
-              )}
-            </div>
-          </li>
-        )
-      })}
-    </ol>
-  )
 }
 
 function InfoRow({ icon: Icon, label, value }) {
@@ -115,8 +46,6 @@ export default function CustomerAccount() {
   const { user, profile, logout, refreshProfile } = useCustomerAuth()
   const { toast } = useToast()
 
-  const [orders, setOrders] = useState([])
-  const [loadingOrders, setLoadingOrders] = useState(true)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -124,28 +53,8 @@ export default function CustomerAccount() {
   const fileInputRef = useRef(null)
 
   useEffect(() => {
-    if (!user) return
-    let active = true
-    getMyOrders(user.uid).then((data) => {
-      if (!active) return
-      setOrders(data)
-      setLoadingOrders(false)
-    })
-    return () => {
-      active = false
-    }
-  }, [user])
-
-  useEffect(() => {
     if (profile) setForm(profile)
   }, [profile])
-
-  const stats = useMemo(() => {
-    const total = orders
-      .filter((o) => o.status !== 'cancelled')
-      .reduce((sum, o) => sum + (o.total || 0), 0)
-    return { count: orders.length, total }
-  }, [orders])
 
   if (!profile || !form) return <PageLoader />
 
@@ -261,186 +170,113 @@ export default function CustomerAccount() {
               {t('account.logout')}
             </button>
           </div>
-
-          {/* stat tiles */}
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:max-w-md sm:gap-4">
-            <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-white/70 p-3 shadow-sm backdrop-blur sm:gap-3 sm:p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-plum-100 text-plum-600 sm:h-11 sm:w-11">
-                <CartIcon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-xl font-semibold leading-none sm:text-2xl">{stats.count}</p>
-                <p className="mt-1 truncate text-xs text-ink/50">{t('account.statsOrders')}</p>
-              </div>
-            </div>
-            <div className="flex min-w-0 items-center gap-2 rounded-2xl bg-white/70 p-3 shadow-sm backdrop-blur sm:gap-3 sm:p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blush-100 text-blush-600 sm:h-11 sm:w-11">
-                <WalletIcon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-xl font-semibold leading-none text-blush-600 sm:text-2xl">
-                  {formatPrice(stats.total, language)}
-                </p>
-                <p className="mt-1 truncate text-xs text-ink/50">{t('account.statsTotal')}</p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* ───────────── body ───────────── */}
-      <div className="container-x py-10 lg:py-14">
-        <div className="grid gap-8 lg:grid-cols-5">
-          {/* profile details */}
-          <div className="min-w-0 lg:col-span-2">
-            <div className="card p-5 sm:p-6">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="font-display text-lg font-semibold">{t('account.profileTitle')}</h2>
-                {!editing && (
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="text-sm font-medium text-plum-600 hover:text-plum-700"
-                  >
-                    {t('admin.edit')}
-                  </button>
-                )}
-              </div>
-
-              {editing ? (
-                <form onSubmit={handleSave} className="space-y-3">
-                  <div>
-                    <label className="label">{t('checkout.fullName')}</label>
-                    <input
-                      value={form.customerName}
-                      onChange={(e) => setForm((f) => ({ ...f, customerName: e.target.value }))}
-                      className="input"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="label">{t('checkout.phone')}</label>
-                    <input
-                      value={form.phone}
-                      onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                      className="input"
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="label">{t('checkout.city')}</label>
-                      <input
-                        value={form.city}
-                        onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                        className="input"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="label">{t('checkout.postalCode')}</label>
-                      <input
-                        value={form.postalCode || ''}
-                        onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
-                        className="input"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="label">{t('checkout.address')}</label>
-                    <input
-                      value={form.address}
-                      onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                      className="input"
-                      required
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setForm(profile)
-                        setEditing(false)
-                      }}
-                      className="btn-outline flex-1"
-                    >
-                      {t('admin.cancel')}
-                    </button>
-                    <button type="submit" disabled={saving} className="btn-primary flex-1">
-                      {saving ? <Spinner className="h-5 w-5" /> : t('admin.save')}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-4">
-                  <InfoRow icon={MailIcon} label={t('checkout.email')} value={profile.email} />
-                  <InfoRow icon={PhoneIcon} label={t('checkout.phone')} value={profile.phone} />
-                  <InfoRow
-                    icon={MapPinIcon}
-                    label={t('checkout.address')}
-                    value={`${profile.address}, ${profile.city} ${profile.postalCode || ''}`.trim()}
-                  />
-                </div>
-              )}
-            </div>
+      <div className="container-x max-w-2xl py-10 lg:py-14">
+        <Link
+          to="/suivi"
+          className="card mb-6 flex items-center gap-4 p-5 transition hover:shadow-lg"
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-plum-100 text-plum-600">
+            <CartIcon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-ink">{t('account.myOrders')}</p>
+            <p className="truncate text-sm text-ink/50">{t('account.viewOrdersHint')}</p>
           </div>
+          <ArrowRight className="h-5 w-5 shrink-0 text-ink/30" />
+        </Link>
 
-          {/* orders */}
-          <div className="min-w-0 lg:col-span-3">
-            <h2 className="mb-4 font-display text-lg font-semibold">{t('account.myOrders')}</h2>
-            {loadingOrders ? (
-              <div className="flex justify-center py-10">
-                <Spinner className="h-8 w-8" />
-              </div>
-            ) : orders.length === 0 ? (
-              <div className="card flex flex-col items-center gap-4 p-12 text-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blush-50 text-plum-300">
-                  <CartIcon className="h-8 w-8" />
-                </span>
-                <p className="text-sm text-ink/50">{t('account.noOrders')}</p>
-                <Link to="/shop" className="btn-primary">
-                  {t('account.startShopping')}
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {orders.map((o) => {
-                  const itemCount = (o.items || []).reduce((n, i) => n + i.quantity, 0)
-                  return (
-                    <div key={o.id} className="card overflow-hidden">
-                      <div className="flex flex-wrap items-center justify-between gap-2 bg-blush-50/40 px-4 py-4 sm:px-5">
-                        <div className="min-w-0">
-                          <p className="truncate font-mono text-sm font-semibold text-plum-600">{o.orderRef}</p>
-                          <p className="truncate text-xs text-ink/40">
-                            {formatDate(o.createdAt, language)} ·{' '}
-                            {t('account.orderCount', { count: itemCount })}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <StatusBadge status={o.status} />
-                          <span className="text-lg font-semibold text-blush-600">
-                            {formatPrice(o.total, language)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="px-4 pt-4 sm:px-5">
-                        <OrderTimeline order={o} t={t} language={language} />
-                      </div>
-                      <ul className="space-y-1 border-t border-blush-50 px-4 py-4 text-sm sm:px-5">
-                        {(o.items || []).map((item, i) => (
-                          <li key={i} className="flex justify-between gap-2 text-ink/70">
-                            <span className="min-w-0 truncate">
-                              {item.name} × {item.quantity}
-                            </span>
-                            <span className="shrink-0">{formatPrice(item.price * item.quantity, language)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )
-                })}
-              </div>
+        <div className="card p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold">{t('account.profileTitle')}</h2>
+            {!editing && (
+              <button
+                onClick={() => setEditing(true)}
+                className="text-sm font-medium text-plum-600 hover:text-plum-700"
+              >
+                {t('admin.edit')}
+              </button>
             )}
           </div>
+
+          {editing ? (
+            <form onSubmit={handleSave} className="space-y-3">
+              <div>
+                <label className="label">{t('checkout.fullName')}</label>
+                <input
+                  value={form.customerName}
+                  onChange={(e) => setForm((f) => ({ ...f, customerName: e.target.value }))}
+                  className="input"
+                  required
+                />
+              </div>
+              <div>
+                <label className="label">{t('checkout.phone')}</label>
+                <input
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="input"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">{t('checkout.city')}</label>
+                  <input
+                    value={form.city}
+                    onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                    className="input"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label">{t('checkout.postalCode')}</label>
+                  <input
+                    value={form.postalCode || ''}
+                    onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))}
+                    className="input"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">{t('checkout.address')}</label>
+                <input
+                  value={form.address}
+                  onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  className="input"
+                  required
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm(profile)
+                    setEditing(false)
+                  }}
+                  className="btn-outline flex-1"
+                >
+                  {t('admin.cancel')}
+                </button>
+                <button type="submit" disabled={saving} className="btn-primary flex-1">
+                  {saving ? <Spinner className="h-5 w-5" /> : t('admin.save')}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <InfoRow icon={MailIcon} label={t('checkout.email')} value={profile.email} />
+              <InfoRow icon={PhoneIcon} label={t('checkout.phone')} value={profile.phone} />
+              <InfoRow
+                icon={MapPinIcon}
+                label={t('checkout.address')}
+                value={`${profile.address}, ${profile.city} ${profile.postalCode || ''}`.trim()}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -82,6 +82,14 @@ export default function AccountMenu() {
           >
             {t('account.myAccount')}
           </Link>
+          <Link
+            to="/suivi"
+            onClick={() => setOpen(false)}
+            className="block rounded-xl px-3 py-2 text-sm text-ink transition hover:bg-blush-50"
+            role="menuitem"
+          >
+            {t('account.myOrders')}
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import ScrollToTop from './components/layout/ScrollToTop'
@@ -13,6 +13,7 @@ import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
 import CustomerLogin from './pages/CustomerLogin'
 import CustomerAccount from './pages/CustomerAccount'
+import CustomerOrders from './pages/CustomerOrders'
 import RequireCustomer from './pages/RequireCustomer'
 import NotFound from './pages/NotFound'
 
@@ -71,9 +72,22 @@ export default function App() {
                       </RequireCustomer>
                     }
                   />
-                  {/* legacy tracking links now live inside the account page */}
-                  <Route path="/suivi" element={<Navigate to="/compte" replace />} />
-                  <Route path="/suivi/:ref" element={<Navigate to="/compte" replace />} />
+                  <Route
+                    path="/suivi"
+                    element={
+                      <RequireCustomer>
+                        <CustomerOrders />
+                      </RequireCustomer>
+                    }
+                  />
+                  <Route
+                    path="/suivi/:ref"
+                    element={
+                      <RequireCustomer>
+                        <CustomerOrders />
+                      </RequireCustomer>
+                    }
+                  />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>

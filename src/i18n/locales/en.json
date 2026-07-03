@@ -137,6 +137,8 @@
     "profileTitle": "My details",
     "profileSaved": "Profile updated",
     "myOrders": "My orders",
+    "backToProfile": "Back to my profile",
+    "viewOrdersHint": "Track the status and history of your orders",
     "noOrders": "You haven't placed any orders yet.",
     "startShopping": "Start shopping",
     "logout": "Log out",
