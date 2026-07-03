@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { useCart } from '../../context/CartContext'
 import { useCustomerAuth } from '../../context/CustomerAuthContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import AccountMenu from './AccountMenu'
 import CartDrawer from '../cart/CartDrawer'
 import { CartIcon, SearchIcon, MenuIcon, CloseIcon, UserIcon } from '../ui/icons'
 
 export default function Navbar() {
   const { t } = useTranslation()
   const { count } = useCart()
-  const { isAuthed: customerAuthed } = useCustomerAuth()
+  const { isAuthed: customerAuthed, logout: customerLogout } = useCustomerAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -114,16 +115,7 @@ export default function Navbar() {
 
             <LanguageSwitcher compact />
 
-            <Link
-              to={customerAuthed ? '/compte' : '/connexion'}
-              className="relative rounded-full p-2 text-ink transition hover:bg-blush-50"
-              aria-label={t('nav.account')}
-            >
-              <UserIcon className="h-6 w-6" />
-              {customerAuthed && (
-                <span className="absolute end-1.5 top-1.5 h-2 w-2 rounded-full bg-plum-500 ring-2 ring-white" />
-              )}
-            </Link>
+            <AccountMenu />
 
             <button
               onClick={() => setCartOpen(true)}
@@ -208,6 +200,18 @@ export default function Navbar() {
               <UserIcon className="h-5 w-5" />
               {customerAuthed ? t('account.myAccount') : t('nav.account')}
             </NavLink>
+            {customerAuthed && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await customerLogout()
+                  navigate('/')
+                }}
+                className="rounded-2xl px-4 py-3 text-start text-base font-medium text-blush-600 hover:bg-blush-50"
+              >
+                {t('account.logout')}
+              </button>
+            )}
             <Link
               to="/admin"
               className="rounded-2xl px-4 py-3 text-base font-medium text-ink/50 hover:bg-blush-50"
