@@ -95,9 +95,12 @@ export default function OrderConfirmation() {
           </ol>
         </div>
 
-        <div className="mt-10 flex justify-center">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link to="/shop" className="btn-primary">
             {t('confirmation.continueShopping')}
+          </Link>
+          <Link to={`/suivi/${order.orderRef}`} className="btn-outline">
+            {t('confirmation.trackOrder')}
           </Link>
         </div>
       </div>

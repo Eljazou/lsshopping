@@ -5,6 +5,7 @@ import LanguageSwitcher from '../../components/layout/LanguageSwitcher'
 import AdminOverview from './AdminOverview'
 import AdminOrders from './AdminOrders'
 import AdminProducts from './AdminProducts'
+import AdminReviews from './AdminReviews'
 
 export default function AdminDashboard() {
   const { t } = useTranslation()
@@ -57,6 +58,9 @@ export default function AdminDashboard() {
           <NavLink to="/admin/products" className={tabClass}>
             {t('admin.products')}
           </NavLink>
+          <NavLink to="/admin/reviews" className={tabClass}>
+            {t('reviews.adminTab')}
+          </NavLink>
         </div>
       </header>
 
@@ -66,6 +70,7 @@ export default function AdminDashboard() {
           <Route path="overview" element={<AdminOverview />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="products" element={<AdminProducts />} />
+          <Route path="reviews" element={<AdminReviews />} />
           <Route path="*" element={<Navigate to="overview" replace />} />
         </Routes>
       </main>

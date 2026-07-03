@@ -109,19 +109,27 @@ export async function deleteProductImage(url) {
 }
 
 // ─────────────────────── ORDERS ───────────────────────
+//
+// Order documents are keyed by their own orderRef (e.g. "ECL-7F3K9Q") instead
+// of an auto-generated ID. That's what makes public order tracking possible
+// without accounts: firestore.rules allows a public *get* of a single order
+// by that exact ID (you have to already know the code — same trust model as
+// a parcel tracking number) while still blocking *list* to admins only, so
+// no one can browse/enumerate all orders.
 
 export async function createOrder(order) {
-  const orderRef = generateOrderRef()
-  const payload = {
-    ...order,
-    status: 'pending',
-    orderRef,
-    createdAt: new Date().toISOString(),
-  }
-
   if (USE_MOCK) {
     await delay(500)
-    const saved = { id: `o${Date.now()}`, ...payload }
+    const orderRef = generateOrderRef()
+    const nowIso = new Date().toISOString()
+    const saved = {
+      id: orderRef,
+      ...order,
+      status: 'pending',
+      orderRef,
+      createdAt: nowIso,
+      statusHistory: [{ status: 'pending', changedAt: nowIso }],
+    }
     mockOrders = [saved, ...mockOrders]
     // Decrement stock for each purchased product, same as the live path.
     mockProducts = mockProducts.map((p) => {
@@ -132,30 +140,54 @@ export async function createOrder(order) {
     return saved
   }
 
-  // Create the order and decrement each purchased product's stock atomically
-  // — either both succeed or neither does. Uses increment() so concurrent
-  // checkouts don't clobber each other's stock counts.
-  const { collection, doc, writeBatch, serverTimestamp, increment } =
-    await import('firebase/firestore')
+  // Create the order (at a doc ID equal to its own orderRef) and decrement
+  // each purchased product's stock atomically in one transaction — either
+  // everything succeeds or nothing does. Retries a handful of times on the
+  // (astronomically unlikely) chance of a orderRef collision.
+  const { doc, runTransaction, serverTimestamp, increment } = await import('firebase/firestore')
   const db = await getDb()
-  const batch = writeBatch(db)
 
-  const orderDocRef = doc(collection(db, 'orders'))
-  batch.set(orderDocRef, {
-    ...order,
-    status: 'pending',
-    orderRef,
-    createdAt: serverTimestamp(),
-  })
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const orderRef = generateOrderRef()
+    const orderDocRef = doc(db, 'orders', orderRef)
+    try {
+      return await runTransaction(db, async (tx) => {
+        const existing = await tx.get(orderDocRef)
+        if (existing.exists()) throw new Error('ORDER_REF_COLLISION')
 
-  for (const item of order.items) {
-    batch.update(doc(db, 'products', item.productId), {
-      stock: increment(-item.quantity),
-    })
+        const nowIso = new Date().toISOString()
+        const data = {
+          ...order,
+          status: 'pending',
+          orderRef,
+          createdAt: serverTimestamp(),
+          statusHistory: [{ status: 'pending', changedAt: nowIso }],
+        }
+        tx.set(orderDocRef, data)
+        for (const item of order.items) {
+          tx.update(doc(db, 'products', item.productId), {
+            stock: increment(-item.quantity),
+          })
+        }
+        return { id: orderRef, ...data, createdAt: nowIso }
+      })
+    } catch (err) {
+      if (err.message === 'ORDER_REF_COLLISION' && attempt < 4) continue
+      throw err
+    }
   }
+}
 
-  await batch.commit()
-  return { id: orderDocRef.id, ...payload }
+function normalizeOrderDoc(id, data) {
+  return {
+    id,
+    ...data,
+    createdAt: data.createdAt?.toDate?.().toISOString?.() ?? data.createdAt ?? null,
+    statusHistory: (data.statusHistory || []).map((h) => ({
+      ...h,
+      changedAt: h.changedAt?.toDate?.().toISOString?.() ?? h.changedAt ?? null,
+    })),
+  }
 }
 
 export async function getOrders() {
@@ -166,22 +198,35 @@ export async function getOrders() {
   const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
   const q = query(collection(await getDb(), 'orders'), orderBy('createdAt', 'desc'))
   const snap = await getDocs(q)
-  return snap.docs.map((d) => {
-    const data = d.data()
-    return {
-      id: d.id,
-      ...data,
-      createdAt:
-        data.createdAt?.toDate?.().toISOString?.() ?? data.createdAt ?? null,
-    }
-  })
+  return snap.docs.map((d) => normalizeOrderDoc(d.id, d.data()))
+}
+
+// Public lookup for the order tracking page — no admin session required.
+// Returns null both when the ref doesn't exist and on any read error, so a
+// wrong code and a real error look the same to an anonymous visitor.
+export async function getOrderByRef(ref) {
+  if (USE_MOCK) {
+    await delay(300)
+    const found = mockOrders.find((o) => o.orderRef === ref)
+    return found ? { ...found } : null
+  }
+  try {
+    const { doc, getDoc } = await import('firebase/firestore')
+    const snap = await getDoc(doc(await getDb(), 'orders', ref))
+    return snap.exists() ? normalizeOrderDoc(snap.id, snap.data()) : null
+  } catch {
+    return null
+  }
 }
 
 // Restores or re-deducts product stock when an order moves into or out of
 // 'cancelled'. Cancelling gives units back to inventory; un-cancelling (e.g.
 // an admin correcting a mistaken cancellation) takes them out again — so
-// stock always reflects only genuinely active/fulfilled orders.
+// stock always reflects only genuinely active/fulfilled orders. Also appends
+// every transition to statusHistory, which powers the tracking timeline.
 export async function updateOrderStatus(id, status) {
+  const nowIso = new Date().toISOString()
+
   if (USE_MOCK) {
     await delay(200)
     const target = mockOrders.find((o) => o.id === id)
@@ -197,7 +242,11 @@ export async function updateOrderStatus(id, status) {
         })
       }
     }
-    mockOrders = mockOrders.map((o) => (o.id === id ? { ...o, status } : o))
+    mockOrders = mockOrders.map((o) =>
+      o.id === id
+        ? { ...o, status, statusHistory: [...(o.statusHistory || []), { status, changedAt: nowIso }] }
+        : o
+    )
     return true
   }
 
@@ -220,7 +269,91 @@ export async function updateOrderStatus(id, status) {
         })
       }
     }
-    tx.update(orderRef, { status })
+    const history = Array.isArray(order.statusHistory) ? order.statusHistory : []
+    tx.update(orderRef, { status, statusHistory: [...history, { status, changedAt: nowIso }] })
   })
+  return true
+}
+
+// ─────────────────────── REVIEWS ───────────────────────
+//
+// Public create-only, like orders: anyone can submit a review, but it only
+// becomes visible once an admin approves it (status starts 'pending').
+
+let mockReviews = []
+
+export async function addReview(review) {
+  if (USE_MOCK) {
+    await delay(300)
+    const saved = { id: `r${Date.now()}`, ...review, status: 'pending', createdAt: new Date().toISOString() }
+    mockReviews = [saved, ...mockReviews]
+    return saved
+  }
+  const { collection, addDoc, serverTimestamp } = await import('firebase/firestore')
+  const ref = await addDoc(collection(await getDb(), 'reviews'), {
+    ...review,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  })
+  return { id: ref.id, ...review, status: 'pending', createdAt: new Date().toISOString() }
+}
+
+// Approved reviews for a single product (storefront-facing).
+export async function getApprovedReviews(productId) {
+  if (USE_MOCK) {
+    await delay()
+    return mockReviews.filter((r) => r.productId === productId && r.status === 'approved')
+  }
+  const { collection, getDocs, query, where } = await import('firebase/firestore')
+  const q = query(
+    collection(await getDb(), 'reviews'),
+    where('productId', '==', productId),
+    where('status', '==', 'approved')
+  )
+  const snap = await getDocs(q)
+  return snap.docs
+    .map((d) => ({
+      id: d.id,
+      ...d.data(),
+      createdAt: d.data().createdAt?.toDate?.().toISOString?.() ?? d.data().createdAt ?? null,
+    }))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+}
+
+// All reviews regardless of status (admin moderation view).
+export async function getAllReviews() {
+  if (USE_MOCK) {
+    await delay()
+    return [...mockReviews]
+  }
+  const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
+  const q = query(collection(await getDb(), 'reviews'), orderBy('createdAt', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: d.data().createdAt?.toDate?.().toISOString?.() ?? d.data().createdAt ?? null,
+  }))
+}
+
+export async function updateReviewStatus(id, status) {
+  if (USE_MOCK) {
+    await delay(150)
+    mockReviews = mockReviews.map((r) => (r.id === id ? { ...r, status } : r))
+    return true
+  }
+  const { doc, updateDoc } = await import('firebase/firestore')
+  await updateDoc(doc(await getDb(), 'reviews', id), { status })
+  return true
+}
+
+export async function deleteReview(id) {
+  if (USE_MOCK) {
+    await delay(150)
+    mockReviews = mockReviews.filter((r) => r.id !== id)
+    return true
+  }
+  const { doc, deleteDoc } = await import('firebase/firestore')
+  await deleteDoc(doc(await getDb(), 'reviews', id))
   return true
 }

@@ -9,8 +9,17 @@ rules_version = '2';
 //                 *decrement* just the `stock` field — this is what lets
 //                 checkout reduce inventory without an admin session; see
 //                 isValidStockDecrement() below for the exact constraints.
-//   • orders    — publicly CREATE-only (customers place COD orders),
-//                 readable/updatable only by an authenticated admin user.
+//   • orders    — publicly CREATE-only (customers place COD orders). Each
+//                 order's document ID *is* its own orderRef (e.g.
+//                 "ECL-7F3K9Q"), so a public *get* of one exact order is
+//                 allowed — this is what powers order tracking without an
+//                 account (knowing the code is the access control, exactly
+//                 like a parcel tracking number). *Listing/querying* the
+//                 whole collection stays admin-only, so no one can browse
+//                 or enumerate other customers' orders.
+//   • reviews   — publicly CREATE-only (status starts 'pending'); only
+//                 'approved' reviews are publicly readable, everything else
+//                 (including moderation) requires an authenticated admin.
 //
 //  Admin accounts are created manually in the Firebase console
 //  (Authentication > Users > Add user) — there is no public sign-up. Because
@@ -50,6 +59,16 @@ service cloud.firestore {
         && before - after <= 50;
     }
 
+    // Basic shape validation for an incoming review.
+    function isValidReview(r) {
+      return r.keys().hasAll(['productId', 'customerName', 'rating', 'comment', 'status'])
+        && r.productId is string && r.productId.size() > 0
+        && r.customerName is string && r.customerName.size() > 0 && r.customerName.size() <= 60
+        && r.rating is number && r.rating >= 1 && r.rating <= 5
+        && r.comment is string && r.comment.size() <= 500
+        && r.status == 'pending';
+    }
+
     match /products/{productId} {
       allow read: if true;
       allow create, delete: if isAdmin();
@@ -58,8 +77,16 @@ service cloud.firestore {
 
     match /orders/{orderId} {
       allow create: if isValidOrder(request.resource.data);
-      allow read, update: if isAdmin();
+      allow get: if true;
+      allow list: if isAdmin();
+      allow update: if isAdmin();
       allow delete: if false; // orders are never deleted, only status-updated
+    }
+
+    match /reviews/{reviewId} {
+      allow create: if isValidReview(request.resource.data);
+      allow get, list: if isAdmin() || resource.data.status == 'approved';
+      allow update, delete: if isAdmin();
     }
   }
 }

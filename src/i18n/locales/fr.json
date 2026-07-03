@@ -100,7 +100,44 @@
     "step2": "Nous préparons et expédions vos produits.",
     "step3": "Vous payez en espèces à la livraison.",
     "continueShopping": "Continuer mes achats",
+    "trackOrder": "Suivre ma commande",
     "summary": "Récapitulatif"
+  },
+  "tracking": {
+    "title": "Suivre votre commande",
+    "subtitle": "Entrez votre référence de commande pour voir son statut actuel.",
+    "placeholder": "ex. ECL-7F3K9Q",
+    "searchCta": "Suivre",
+    "notFoundTitle": "Aucune commande trouvée",
+    "notFoundText": "Vérifiez la référence — c'est le code affiché sur votre page de confirmation (ex. ECL-7F3K9Q).",
+    "statusTitle": "Statut de la commande",
+    "cancelledTitle": "Cette commande a été annulée",
+    "pendingStep": "Pas encore atteint"
+  },
+  "reviews": {
+    "title": "Avis clients",
+    "none": "Aucun avis pour le moment — soyez la première !",
+    "count": "{{count}} avis",
+    "count_other": "{{count}} avis",
+    "beFirst": "Aucun avis pour le moment. Soyez la première à partager votre expérience !",
+    "writeTitle": "Laisser un avis",
+    "yourRating": "Votre note",
+    "yourComment": "Votre avis (optionnel)",
+    "commentPlaceholder": "Qu'avez-vous pensé de ce produit ?",
+    "submitCta": "Envoyer l'avis",
+    "moderationNotice": "Les avis sont vérifiés avant d'apparaître publiquement.",
+    "formIncomplete": "Merci d'indiquer votre nom et une note.",
+    "submitted": "Merci ! Votre avis apparaîtra après validation.",
+    "submitFailed": "Impossible d'envoyer votre avis — réessayez.",
+    "adminTab": "Avis",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "noneToModerate": "Aucun avis à afficher.",
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté"
+    }
   },
   "admin": {
     "login": "Connexion admin",
@@ -183,6 +220,7 @@
     "aboutText": "Cosmétiques premium livrés partout au Maroc avec paiement à la livraison. Propres, sélectionnés et sans cruauté.",
     "shop": "Boutique",
     "help": "Service client",
+    "tracking": "Suivre ma commande",
     "contact": "Nous contacter",
     "shipping": "Livraison",
     "returns": "Politique de retour",

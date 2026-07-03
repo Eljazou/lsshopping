@@ -96,6 +96,11 @@ export default function Footer() {
             {t('footer.help')}
           </h4>
           <ul className="space-y-2 text-sm text-white/60">
+            <li>
+              <Link to="/suivi" className="transition hover:text-white">
+                {t('footer.tracking')}
+              </Link>
+            </li>
             {helpLinks.map((l) => (
               <li key={l.key}>
                 <a href="#" className="transition hover:text-white">

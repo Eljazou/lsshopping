@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { getProduct, getProducts } from '../services/dataService'
+import { getProduct, getProducts, getApprovedReviews, addReview } from '../services/dataService'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import { useLanguage } from '../context/LanguageContext'
-import { formatPrice, localized } from '../utils/format'
+import { formatPrice, formatDate, localized } from '../utils/format'
 import ProductImage from '../components/ui/ProductImage'
 import QuantitySelector from '../components/ui/QuantitySelector'
 import ProductGrid from '../components/product/ProductGrid'
 import SectionHeading from '../components/ui/SectionHeading'
-import { PageLoader } from '../components/ui/Spinner'
+import StarRating from '../components/product/StarRating'
+import Spinner, { PageLoader } from '../components/ui/Spinner'
 import { CartIcon, ArrowRight, TruckIcon, ShieldIcon, CheckIcon } from '../components/ui/icons'
+
+const EMPTY_REVIEW_FORM = { customerName: '', rating: 0, comment: '' }
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -25,6 +28,11 @@ export default function ProductDetail() {
   const [related, setRelated] = useState([])
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
+
+  const [reviews, setReviews] = useState([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewForm, setReviewForm] = useState(EMPTY_REVIEW_FORM)
+  const [submittingReview, setSubmittingReview] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -46,6 +54,49 @@ export default function ProductDetail() {
       active = false
     }
   }, [id])
+
+  useEffect(() => {
+    let active = true
+    setReviewsLoading(true)
+    setReviewForm(EMPTY_REVIEW_FORM)
+    getApprovedReviews(id).then((r) => {
+      if (!active) return
+      setReviews(r)
+      setReviewsLoading(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [id])
+
+  const avgRating = useMemo(() => {
+    if (reviews.length === 0) return 0
+    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+  }, [reviews])
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    if (!reviewForm.customerName.trim() || !reviewForm.rating) {
+      toast(t('reviews.formIncomplete'), 'error')
+      return
+    }
+    setSubmittingReview(true)
+    try {
+      await addReview({
+        productId: id,
+        customerName: reviewForm.customerName.trim(),
+        rating: reviewForm.rating,
+        comment: reviewForm.comment.trim(),
+      })
+      setReviewForm(EMPTY_REVIEW_FORM)
+      toast(t('reviews.submitted'))
+    } catch (err) {
+      console.error(err)
+      toast(t('reviews.submitFailed'), 'error')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   if (loading) return <PageLoader />
 
@@ -115,6 +166,15 @@ export default function ProductDetail() {
           <h1 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
             {name}
           </h1>
+
+          {!reviewsLoading && reviews.length > 0 && (
+            <a href="#reviews" className="mt-2 flex items-center gap-2 text-sm">
+              <StarRating value={avgRating} />
+              <span className="text-ink/60">
+                {avgRating.toFixed(1)} · {t('reviews.count', { count: reviews.length })}
+              </span>
+            </a>
+          )}
 
           <div className="mt-4 flex items-center gap-3">
             <span className="text-3xl font-semibold text-blush-600">
@@ -187,6 +247,93 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* reviews */}
+      <section id="reviews" className="mt-20 scroll-mt-24">
+        <SectionHeading
+          title={t('reviews.title')}
+          subtitle={
+            reviews.length > 0
+              ? `${avgRating.toFixed(1)} / 5 · ${t('reviews.count', { count: reviews.length })}`
+              : t('reviews.none')
+          }
+        />
+
+        <div className="grid gap-8 lg:grid-cols-5">
+          {/* list */}
+          <div className="lg:col-span-3">
+            {reviewsLoading ? (
+              <div className="flex justify-center py-10">
+                <Spinner className="h-8 w-8" />
+              </div>
+            ) : reviews.length === 0 ? (
+              <p className="py-6 text-center text-sm text-ink/50">{t('reviews.beFirst')}</p>
+            ) : (
+              <ul className="space-y-4">
+                {reviews.map((r) => (
+                  <li key={r.id} className="card p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium">{r.customerName}</span>
+                      <span className="text-xs text-ink/40">{formatDate(r.createdAt, language)}</span>
+                    </div>
+                    <StarRating value={r.rating} size="h-3.5 w-3.5" />
+                    {r.comment && <p className="mt-2 text-sm leading-relaxed text-ink/70">{r.comment}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* submit form */}
+          <div className="lg:col-span-2">
+            <form onSubmit={handleReviewSubmit} className="card space-y-4 p-5">
+              <h3 className="font-display text-lg font-semibold">{t('reviews.writeTitle')}</h3>
+
+              <div>
+                <label className="label">{t('reviews.yourRating')}</label>
+                <StarRating
+                  value={reviewForm.rating}
+                  onChange={(n) => setReviewForm((f) => ({ ...f, rating: n }))}
+                  size="h-6 w-6"
+                />
+              </div>
+
+              <div>
+                <label className="label" htmlFor="review-name">
+                  {t('checkout.fullName')}
+                </label>
+                <input
+                  id="review-name"
+                  value={reviewForm.customerName}
+                  onChange={(e) => setReviewForm((f) => ({ ...f, customerName: e.target.value }))}
+                  className="input"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="label" htmlFor="review-comment">
+                  {t('reviews.yourComment')}
+                </label>
+                <textarea
+                  id="review-comment"
+                  rows={3}
+                  maxLength={500}
+                  value={reviewForm.comment}
+                  onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
+                  className="input resize-none"
+                  placeholder={t('reviews.commentPlaceholder')}
+                />
+              </div>
+
+              <button type="submit" disabled={submittingReview} className="btn-primary w-full">
+                {submittingReview ? <Spinner className="h-5 w-5" /> : t('reviews.submitCta')}
+              </button>
+              <p className="text-center text-xs text-ink/40">{t('reviews.moderationNotice')}</p>
+            </form>
+          </div>
+        </div>
+      </section>
 
       {/* related */}
       {related.length > 0 && (

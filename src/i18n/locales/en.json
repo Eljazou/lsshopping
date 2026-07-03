@@ -100,7 +100,44 @@
     "step2": "We prepare and ship your products.",
     "step3": "You pay in cash when your order is delivered.",
     "continueShopping": "Continue shopping",
+    "trackOrder": "Track my order",
     "summary": "Order summary"
+  },
+  "tracking": {
+    "title": "Track your order",
+    "subtitle": "Enter your order reference to see its current status.",
+    "placeholder": "e.g. ECL-7F3K9Q",
+    "searchCta": "Track",
+    "notFoundTitle": "No order found",
+    "notFoundText": "Double-check the reference — it's the code shown on your confirmation page (e.g. ECL-7F3K9Q).",
+    "statusTitle": "Order status",
+    "cancelledTitle": "This order was cancelled",
+    "pendingStep": "Not yet reached"
+  },
+  "reviews": {
+    "title": "Customer reviews",
+    "none": "No reviews yet — be the first!",
+    "count": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "beFirst": "No reviews yet. Be the first to share your experience!",
+    "writeTitle": "Write a review",
+    "yourRating": "Your rating",
+    "yourComment": "Your review (optional)",
+    "commentPlaceholder": "What did you think of this product?",
+    "submitCta": "Submit review",
+    "moderationNotice": "Reviews are checked before appearing publicly.",
+    "formIncomplete": "Please enter your name and a rating.",
+    "submitted": "Thanks! Your review will appear once approved.",
+    "submitFailed": "Couldn't submit your review — please try again.",
+    "adminTab": "Reviews",
+    "approve": "Approve",
+    "reject": "Reject",
+    "noneToModerate": "No reviews to show.",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "admin": {
     "login": "Admin login",
@@ -183,6 +220,7 @@
     "aboutText": "Premium cosmetics delivered across Morocco with cash on delivery. Clean, curated, and cruelty-free.",
     "shop": "Shop",
     "help": "Customer care",
+    "tracking": "Track my order",
     "contact": "Contact us",
     "shipping": "Shipping & delivery",
     "returns": "Returns policy",

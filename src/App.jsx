@@ -11,6 +11,7 @@ import ProductDetail from './pages/ProductDetail'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import OrderConfirmation from './pages/OrderConfirmation'
+import OrderTracking from './pages/OrderTracking'
 import NotFound from './pages/NotFound'
 
 // Admin pulls in Firebase Auth/Storage and the recharts dashboard — none of
@@ -59,6 +60,8 @@ export default function App() {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/confirmation" element={<OrderConfirmation />} />
+                  <Route path="/suivi" element={<OrderTracking />} />
+                  <Route path="/suivi/:ref" element={<OrderTracking />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
