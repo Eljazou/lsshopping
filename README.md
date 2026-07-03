@@ -131,42 +131,34 @@ patterns — never commit it).
 
 ---
 
-## 📧 EmailJS setup (owner + customer notifications)
+## 📧 EmailJS setup (customer order emails)
 
-There are **two independent email flows**, each needing its own EmailJS
-template. Until configured, both run in **stub mode** — they log the exact
-payload to the browser console instead of sending, so checkout and admin
-status changes work end-to-end without any setup.
-
-| Flow | Function | Sent to | When |
-|---|---|---|---|
-| Owner notification | `sendOrderEmail()` | you (fixed address) | once, on every new order |
-| Customer status email | `sendCustomerStatusEmail()` | the customer | at checkout, then again on **every** status change (confirmed/delivered/cancelled) |
+One flow, one template: `sendCustomerStatusEmail()` emails the **customer**
+once at checkout (status: pending) and again every time an admin changes
+their order's status in Admin > Orders, all the way through
+delivered/cancelled. Until configured it runs in **stub mode** — it logs the
+exact payload to the browser console instead of sending, so checkout and
+admin status changes work end-to-end without any setup.
 
 1. Create an account at <https://dashboard.emailjs.com>.
-2. Add an **Email Service** and note the **Service ID** (shared by both templates).
+2. Add an **Email Service** and note the **Service ID**.
 3. Copy your **Public Key** (Account → API keys).
-4. Create **Template 1 — owner notification**, "To" field set to `{{to_email}}`, body using:
-   `{{order_ref}} {{customer_name}} {{customer_email}} {{customer_phone}}`
-   `{{customer_address}} {{customer_notes}} {{order_items}} {{order_total}} {{order_date}}`
-5. Create **Template 2 — customer status update**, "To" field also `{{to_email}}`
-   (this time it resolves to the *customer's* email, not yours), body using:
+4. Create an **Email Template**, "To" field set to `{{to_email}}` (this
+   resolves to the customer's email), body using:
    `{{to_name}} {{order_ref}} {{status_label}} {{subject}} {{intro_text}}`
    `{{order_items}} {{order_total}} {{tracking_url}} {{tracking_cta}}`
    — `subject` and `intro_text` are already translated into the customer's
    chosen language (FR/EN/AR) by the app, so the template itself can stay
    simple and just place them in the email body/subject line.
-6. Fill `.env`:
+5. Fill `.env`:
 
    ```env
    VITE_EMAILJS_SERVICE_ID=...
-   VITE_EMAILJS_TEMPLATE_ID=...            # Template 1 (owner)
-   VITE_EMAILJS_CUSTOMER_TEMPLATE_ID=...   # Template 2 (customer)
+   VITE_EMAILJS_TEMPLATE_ID=...
    VITE_EMAILJS_PUBLIC_KEY=...
-   VITE_STORE_OWNER_EMAIL=owner@yourstore.ma
    ```
 
-7. Install the client: `npm i @emailjs/browser` (listed as an optional dep).
+6. Install the client: `npm i @emailjs/browser` (listed as an optional dep).
 
 ---
 
