@@ -8,7 +8,13 @@
 //  In LIVE mode it talks to Firestore. Swapping between the two is just the
 //  env flag — no page or component changes required.
 // ─────────────────────────────────────────────────────────────
-import { USE_MOCK, getDb, getAuthInstance, getStorageInstance } from '../config/firebase'
+import {
+  USE_MOCK,
+  getDb,
+  getAuthInstance,
+  getAdminDb,
+  getAdminStorageInstance,
+} from '../config/firebase'
 import { PRODUCTS } from '../data/products'
 import { generateOrderRef } from '../utils/orderRef'
 
@@ -46,6 +52,11 @@ export async function getProduct(id) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
 
+// addProduct/updateProduct/deleteProduct/uploadProductImage/deleteProductImage
+// are only ever called from the admin dashboard, so they go through the
+// admin's own Firebase app instance (getAdminDb/getAdminStorageInstance) —
+// keeping them authenticated as the admin even if a customer session also
+// happens to be active in the same browser. See config/firebase.js.
 export async function addProduct(data) {
   if (USE_MOCK) {
     await delay()
@@ -55,7 +66,7 @@ export async function addProduct(data) {
     return product
   }
   const { collection, addDoc, serverTimestamp } = await import('firebase/firestore')
-  const ref = await addDoc(collection(await getDb(), 'products'), {
+  const ref = await addDoc(collection(await getAdminDb(), 'products'), {
     ...data,
     createdAt: serverTimestamp(),
   })
@@ -71,7 +82,7 @@ export async function updateProduct(id, data) {
     return { id, ...data }
   }
   const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(await getDb(), 'products', id), data)
+  await updateDoc(doc(await getAdminDb(), 'products', id), data)
   return { id, ...data }
 }
 
@@ -82,14 +93,14 @@ export async function deleteProduct(id) {
     return true
   }
   const { doc, deleteDoc } = await import('firebase/firestore')
-  await deleteDoc(doc(await getDb(), 'products', id))
+  await deleteDoc(doc(await getAdminDb(), 'products', id))
   return true
 }
 
 // Uploads a product image to Firebase Storage and returns its download URL.
 // Requires Storage to be enabled on the Firebase project — see README.
 export async function uploadProductImage(file, productId) {
-  const storage = await getStorageInstance()
+  const storage = await getAdminStorageInstance()
   const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage')
   const path = `products/${productId || 'new'}-${Date.now()}-${file.name}`
   const storageRef = ref(storage, path)
@@ -102,7 +113,7 @@ export async function uploadProductImage(file, productId) {
 export async function deleteProductImage(url) {
   if (!url || !url.includes('firebasestorage')) return
   try {
-    const storage = await getStorageInstance()
+    const storage = await getAdminStorageInstance()
     const { ref, deleteObject } = await import('firebase/storage')
     await deleteObject(ref(storage, url))
   } catch (err) {
@@ -285,8 +296,10 @@ export async function getOrders() {
     await delay()
     return mockOrders.map((o) => ({ ...o }))
   }
+  // Admin-only listing (every order, not just one customer's) — goes
+  // through the admin's own Firebase app instance, see config/firebase.js.
   const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
-  const q = query(collection(await getDb(), 'orders'), orderBy('createdAt', 'desc'))
+  const q = query(collection(await getAdminDb(), 'orders'), orderBy('createdAt', 'desc'))
   const snap = await getDocs(q)
   return snap.docs.map((d) => normalizeOrderDoc(d.id, d.data()))
 }
@@ -340,8 +353,9 @@ export async function updateOrderStatus(id, status) {
     return true
   }
 
+  // Admin-only action — goes through the admin's own Firebase app instance.
   const { doc, runTransaction, increment } = await import('firebase/firestore')
-  const db = await getDb()
+  const db = await getAdminDb()
   const orderRef = doc(db, 'orders', id)
 
   await runTransaction(db, async (tx) => {
@@ -410,14 +424,15 @@ export async function getApprovedReviews(productId) {
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
-// All reviews regardless of status (admin moderation view).
+// All reviews regardless of status (admin moderation view). Admin-only —
+// goes through the admin's own Firebase app instance.
 export async function getAllReviews() {
   if (USE_MOCK) {
     await delay()
     return [...mockReviews]
   }
   const { collection, getDocs, query, orderBy } = await import('firebase/firestore')
-  const q = query(collection(await getDb(), 'reviews'), orderBy('createdAt', 'desc'))
+  const q = query(collection(await getAdminDb(), 'reviews'), orderBy('createdAt', 'desc'))
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({
     id: d.id,
@@ -433,7 +448,7 @@ export async function updateReviewStatus(id, status) {
     return true
   }
   const { doc, updateDoc } = await import('firebase/firestore')
-  await updateDoc(doc(await getDb(), 'reviews', id), { status })
+  await updateDoc(doc(await getAdminDb(), 'reviews', id), { status })
   return true
 }
 
@@ -444,6 +459,6 @@ export async function deleteReview(id) {
     return true
   }
   const { doc, deleteDoc } = await import('firebase/firestore')
-  await deleteDoc(doc(await getDb(), 'reviews', id))
+  await deleteDoc(doc(await getAdminDb(), 'reviews', id))
   return true
 }

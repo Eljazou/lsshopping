@@ -70,3 +70,61 @@ export async function getStorageInstance() {
   if (!storageInstance) storageInstance = getStorage(app)
   return storageInstance
 }
+
+// ─────────────────────────────────────────────────────────────
+//  Secondary "admin" app instance.
+//
+//  Firebase Auth keeps its session per named app instance, so giving the
+//  admin dashboard its own named app (instead of reusing the default one)
+//  gives it a genuinely separate login — being signed in as admin never
+//  makes the storefront think a customer is signed in, and vice versa.
+//  Both apps still talk to the same Firestore/Storage backend and the same
+//  security rules; only the Auth *session* is isolated.
+// ─────────────────────────────────────────────────────────────
+let adminAppPromise = null
+
+function getAdminFirebaseApp() {
+  if (!adminAppPromise) {
+    if (!firebaseConfig.projectId) {
+      throw new Error(
+        'Firebase is not configured. Set VITE_FIREBASE_* in .env or keep VITE_USE_MOCK=true.'
+      )
+    }
+    adminAppPromise = import('firebase/app').then(({ initializeApp }) =>
+      initializeApp(firebaseConfig, 'admin')
+    )
+  }
+  return adminAppPromise
+}
+
+let adminDbInstance = null
+export async function getAdminDb() {
+  if (!adminDbInstance) {
+    const [app, { getFirestore }] = await Promise.all([
+      getAdminFirebaseApp(),
+      import('firebase/firestore'),
+    ])
+    adminDbInstance = getFirestore(app)
+  }
+  return adminDbInstance
+}
+
+let adminAuthInstance = null
+export async function getAdminAuthInstance() {
+  const [app, { getAuth }] = await Promise.all([
+    getAdminFirebaseApp(),
+    import('firebase/auth'),
+  ])
+  if (!adminAuthInstance) adminAuthInstance = getAuth(app)
+  return adminAuthInstance
+}
+
+let adminStorageInstance = null
+export async function getAdminStorageInstance() {
+  const [app, { getStorage }] = await Promise.all([
+    getAdminFirebaseApp(),
+    import('firebase/storage'),
+  ])
+  if (!adminStorageInstance) adminStorageInstance = getStorage(app)
+  return adminStorageInstance
+}

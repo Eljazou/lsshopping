@@ -6,19 +6,24 @@ import {
   useCallback,
   useMemo,
 } from 'react'
-import { USE_MOCK, getAuthInstance, getDb } from '../config/firebase'
+import { USE_MOCK, getAdminAuthInstance, getAdminDb } from '../config/firebase'
 
 const AdminAuthContext = createContext(null)
 
-// The admin dashboard always uses real Firebase Authentication (email /
-// password). There is no public sign-up — admin accounts are created
-// manually (Firebase console + a matching /admins/{uid} Firestore doc,
-// written only via the Admin SDK). Being *signed in* is not enough to be an
-// admin: customers use this same Firebase Auth to create their own accounts
-// (see CustomerAuthContext), so admin status is only granted to UIDs listed
-// in /admins — checked both here and, authoritatively, in firestore.rules.
+// The admin dashboard runs on its own secondary Firebase app instance (see
+// getAdminAuthInstance/getAdminDb in config/firebase.js), completely
+// separate from the customer-facing one used by CustomerAuthContext. That's
+// what keeps the two logins from ever leaking into each other — an admin
+// signed in here is never mistaken for a signed-in customer on the
+// storefront, and a customer account is never enough to reach the admin UI.
+//
+// Admin accounts are created manually (Firebase console + a matching
+// /admins/{uid} Firestore doc, written only via the Admin SDK). Being
+// signed in to the admin app is still not enough on its own — admin status
+// is only granted to UIDs listed in /admins, checked both here and,
+// authoritatively, in firestore.rules.
 async function checkIsAdmin(uid) {
-  const db = await getDb()
+  const db = await getAdminDb()
   const { doc, getDoc } = await import('firebase/firestore')
   const snap = await getDoc(doc(db, 'admins', uid))
   return snap.exists()
@@ -33,7 +38,7 @@ export function AdminAuthProvider({ children }) {
     let unsubscribe = () => {}
     let cancelled = false
 
-    getAuthInstance().then(async (auth) => {
+    getAdminAuthInstance().then(async (auth) => {
       if (cancelled) return
       const { onAuthStateChanged } = await import('firebase/auth')
       unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -57,7 +62,7 @@ export function AdminAuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async (email, password) => {
-    const auth = await getAuthInstance()
+    const auth = await getAdminAuthInstance()
     const { signInWithEmailAndPassword, signOut } = await import('firebase/auth')
     const credential = await signInWithEmailAndPassword(auth, email, password)
     const isAdmin = await checkIsAdmin(credential.user.uid).catch(() => false)
@@ -70,7 +75,7 @@ export function AdminAuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(async () => {
-    const auth = await getAuthInstance()
+    const auth = await getAdminAuthInstance()
     const { signOut } = await import('firebase/auth')
     await signOut(auth)
   }, [])
