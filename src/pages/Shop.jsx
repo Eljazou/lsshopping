@@ -74,8 +74,13 @@ export default function Shop() {
     if (e.pointerType === 'touch') return
     const el = chipsRef.current
     if (!el) return
+    // Track via window listeners instead of el.setPointerCapture: capturing
+    // the pointer on the container retargets the eventual click (including
+    // on child <button>s) to the container itself, which silently breaks
+    // every category button's onClick.
     drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false }
-    el.setPointerCapture(e.pointerId)
+    window.addEventListener('pointermove', onChipsPointerMove)
+    window.addEventListener('pointerup', endChipsDrag)
   }
   const onChipsPointerMove = (e) => {
     if (!drag.current.active) return
@@ -87,6 +92,8 @@ export default function Shop() {
   }
   const endChipsDrag = () => {
     drag.current.active = false
+    window.removeEventListener('pointermove', onChipsPointerMove)
+    window.removeEventListener('pointerup', endChipsDrag)
   }
   // Suppress the click that would otherwise fire on a chip right after a drag.
   const onChipsClickCapture = (e) => {
@@ -251,11 +258,8 @@ export default function Shop() {
               ref={chipsRef}
               onScroll={updateScrollState}
               onPointerDown={onChipsPointerDown}
-              onPointerMove={onChipsPointerMove}
-              onPointerUp={endChipsDrag}
-              onPointerLeave={endChipsDrag}
               onClickCapture={onChipsClickCapture}
-              className="no-scrollbar flex cursor-grab gap-2 overflow-x-auto pe-6 active:cursor-grabbing"
+              className="no-scrollbar flex cursor-grab gap-2 overflow-x-auto pe-9 active:cursor-grabbing"
             >
               <button
                 onClick={() => updateParam('category', 'all')}
